@@ -1,0 +1,19 @@
+---
+description: 仮想環境・システムPython保護
+alwaysApply: true
+---
+
+# 仮想環境ルール
+
+1. すべての作業は .venv を有効化した状態で行う。
+   - python / pip / pyinstaller はすべて .venv 経由で実行する。
+   - コマンド例（Windows PowerShell）:
+       .venv\Scripts\Activate.ps1
+       .venv\Scripts\python.exe スクリプト名.py
+       .venv\Scripts\pip install パッケージ名
+       .venv\Scripts\pyinstaller ...
+
+2. システムPython（グローバル環境）には何もインストールしない。
+
+3. 誤ってシステムPythonにインストールした場合は、
+   アンインストールして元に戻し、完了を報告する。

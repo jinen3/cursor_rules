@@ -18,12 +18,16 @@
       │     ├─ いいえ → OK（ここでは何もしない）
       │     └─ はい
       │        ├─ 【最短ルート】（確認は後回しでOK）
-      │        │  ├─ 2) 開発開始スクリプトを1回実行（ラク・安全）
+      │        │  ├─ ★おすすめ：2) 開発開始スクリプトを1回実行（更新）
+      │        │  │  └─ Cursorのソース管理GUIを開く（Ctrl+Shift+G）
+      │        │  │     └─ `cursor_rules (new commits)` が出ている？
+      │        │  │        ├─ いいえ → OK（共有作業なし）
+      │        │  │        └─ はい → `cursor_rules` をステージ（＋）→ メッセージ → コミット → 同期/プッシュ（= 6）
       │        │  └─ 3) 最短ルートで最新化（コマンド直打ち）
-      │        │     └─ 次に `git status` で確認（※ 2) のスクリプトは `git status` 自体は実行しません）
-      │        │        └─ `git status` が `modified: cursor_rules (new commits)`？
-      │        │        ├─ いいえ → OK（共有作業なし）
-      │        │        └─ はい → 6) 親リポジトリに commit/push（共有＝公開。Cursorのソース管理GUIでも可）
+      │        │     └─ 次に `git status` で確認（※ 3) はコマンドなので自分で実行）
+      │        │        └─ `modified: cursor_rules (new commits)`？
+      │        │           ├─ いいえ → OK（共有作業なし）
+      │        │           └─ はい → 6) 親リポジトリに commit/push（共有＝公開。Cursorのソース管理GUIでも可）
       │        └─ 【丁寧に確認して進める】
       │           └─ 4) 最新状態を確認
       │              → 必要なら 5) 最新にする（更新）
@@ -32,12 +36,10 @@
       │                 └─ はい → 6) 親リポジトリに commit/push（共有＝公開。Cursorのソース管理GUIでも可）
       ├─ 【ローカルリポジトリ限定】＝自分のPCだけでOK（共有しない）
       │  ├─ 【最短ルート】（確認は後回しでOK）
-      │  │  ├─ 2) 開発開始スクリプトを1回実行（ラク・安全）
+      │  │  ├─ 2) 開発開始スクリプトを1回実行（更新）
+      │  │  │  └─ Cursorのソース管理GUI（Ctrl+Shift+G）で `cursor_rules (new commits)` を確認
       │  │  └─ 3) 最短ルートで最新化（コマンド直打ち）
-      │  │     └─ 次に `git status` で確認（※ 2) のスクリプトは `git status` 自体は実行しません）
-      │  │        └─ `git status` が `modified: cursor_rules (new commits)`？
-      │  │        ├─ いいえ → OK
-      │  │        └─ はい → OK（共有しないので 6) は不要）
+      │  │     └─ `git status` で確認（差分が出ても共有しないので 6) は不要）
       │  └─ 【丁寧に確認して進める】
       │     └─ 4) 最新状態を確認 → 必要なら 5) 最新にする（更新）
       │        └─ `git status` が `modified: cursor_rules (new commits)`？
@@ -94,10 +96,22 @@ git push
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1
 ```
 
-- このスクリプトは **`git status` 自体は実行しません**（最後に「git status で確認してね」と表示するだけです）。実行後に、自分で `git status` を実行して結果を確認します（または Cursor のソース管理GUIで差分を確認します）。
-- 結果を確認：`git status`
-  - `nothing to commit, working tree clean` → OK（共有作業なし）
-  - `modified: cursor_rules (new commits)` → 共有したいなら「6)」へ
+このあと、**Cursor のソース管理GUIで確認→必要なら 6)（共有＝公開）**、という流れが一番おすすめです。
+
+#### ★おすすめ（最短・確実フロー）
+
+1. 2) のスクリプトを実行（更新）
+2. Cursor ソース管理GUIを開く（`Ctrl+Shift+G`）
+3. `cursor_rules (new commits)` が出ていたら
+   - `cursor_rules` をステージ（＋）
+   - メッセージ入力
+   - コミット
+   - 同期/プッシュ（= 6）
+4. 出ていなければ終了（共有作業なし）
+
+補足：
+- このスクリプトは **`git status` 自体は実行しません**（最後に「git status で確認してね」と表示するだけです）。
+- コマンドで確認したい場合は、実行後に `git status` を打ってもOKです。
 
 ### 7) clone 直後など：サブモジュール（cursor_rules）の中身を「取得だけ」したい（更新はまだしない）
 
