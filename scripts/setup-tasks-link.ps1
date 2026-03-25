@@ -9,7 +9,7 @@
   プロジェクト側に tasks.json のシンボリックリンクを作るのが現実解。
 
   注意: Windows は設定によりシンボリックリンク作成に管理者権限や「開発者モード」が必要な場合がある。
-  その場合はフォールバックとしてコピーを作成する（コピー運用は共通更新が自動反映されない）。
+  その場合は「代わりに」コピーを作成する（コピー運用は共通更新が自動反映されない）。
 
 .PARAMETER ProjectRoot
   親リポジトリ（プロジェクト）ルート。省略時はカレントディレクトリ。
@@ -60,7 +60,7 @@ try {
     New-Item -ItemType SymbolicLink -Path $linkPath -Target $targetPath | Out-Null
     Write-Host "シンボリックリンクを作成しました: $linkPath -> $targetPath" -ForegroundColor Green
 } catch {
-    Write-Host "シンボリックリンク作成に失敗しました。コピーで代替します。" -ForegroundColor Yellow
+    Write-Host "シンボリックリンク作成に失敗しました。代わりにコピーを作成します。" -ForegroundColor Yellow
     Write-Host "理由: $($_.Exception.Message)" -ForegroundColor DarkGray
     Copy-Item -LiteralPath $targetPath -Destination $linkPath -Force
     Write-Host "コピーを作成しました（注意: 共通更新は自動反映されません）: $linkPath" -ForegroundColor Yellow
