@@ -1,14 +1,50 @@
 # cursor_rules サブモジュール：開発開始手順（初心者向け）
 
-この文書は「`cursor_rules` をサブモジュールで運用するとき」に、**何をどの順番で打てばよいか**を、なるべくやさしく説明します。
+---
 
-## 最初にこれだけ覚える（初心者向けの覚え方）
+## 前半：やること（最短手順だけ）
 
-- **最初の1回だけ（プロジェクトにサブモジュール設定が無いとき）**：⑥ Pattern①（サブモジュール登録を作って GitHub に保存）
-- **ふだん毎回（開発を始めるとき）**：⑤ の「開発開始スクリプト」を **1回実行**（サブモジュール取得と、必要なら更新まで）
-- **共有したい更新が出たら**：④の手順1〜4（`git status` → `git add cursor_rules` → `git commit` → `git push`）
+### A. ふだん毎回（開発を始めるとき）
 
-⑤のスクリプトは「開発開始時の定番コマンド」をまとめて実行するためのものです（詳細は⑤）。
+親リポジトリのルートで、次を **1回実行**します。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1
+```
+
+- 結果を確認：`git status`
+  - `nothing to commit, working tree clean` → OK（共有作業なし）
+  - `modified: cursor_rules (new commits)` → 共有したいなら「D」へ
+
+### B. clone 直後（まず “取得だけ” にしたい）
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -SkipRemote
+```
+
+### C. 最初の1回だけ（このプロジェクトにサブモジュール設定が無いとき）
+
+親リポジトリのルートで実行します。**注意：親リポジトリのルート直下に `cursor_rules` という名前の通常フォルダが既にあると失敗**します。
+
+```powershell
+git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules
+git add .gitmodules cursor_rules
+git commit -m "Add cursor_rules submodule"
+git push
+```
+
+### D. 共有したい更新が出たとき（他人/別PCにも反映）
+
+```powershell
+git status
+git add cursor_rules
+git commit -m "Update cursor_rules submodule pointer"
+git push
+```
+
+---
+
+## 後半：解説（やさしい説明）
 
 ---
 
