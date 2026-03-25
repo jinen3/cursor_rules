@@ -20,7 +20,8 @@
       │        ├─ 【最短ルート】（確認は後回しでOK）
       │        │  ├─ 2) 開発開始スクリプトを1回実行（ラク・安全）
       │        │  └─ 3) 最短ルートで最新化（コマンド直打ち）
-      │        │     └─ `git status` が `modified: cursor_rules (new commits)`？
+      │        │     └─ 次に `git status` で確認（※ 2) のスクリプトは `git status` 自体は実行しません）
+      │        │        └─ `git status` が `modified: cursor_rules (new commits)`？
       │        │        ├─ いいえ → OK（共有作業なし）
       │        │        └─ はい → 6) 親リポジトリに commit/push（共有＝公開。Cursorのソース管理GUIでも可）
       │        └─ 【丁寧に確認して進める】
@@ -33,7 +34,8 @@
       │  ├─ 【最短ルート】（確認は後回しでOK）
       │  │  ├─ 2) 開発開始スクリプトを1回実行（ラク・安全）
       │  │  └─ 3) 最短ルートで最新化（コマンド直打ち）
-      │  │     └─ `git status` が `modified: cursor_rules (new commits)`？
+      │  │     └─ 次に `git status` で確認（※ 2) のスクリプトは `git status` 自体は実行しません）
+      │  │        └─ `git status` が `modified: cursor_rules (new commits)`？
       │  │        ├─ いいえ → OK
       │  │        └─ はい → OK（共有しないので 6) は不要）
       │  └─ 【丁寧に確認して進める】
@@ -92,6 +94,7 @@ git push
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1
 ```
 
+- このスクリプトは **`git status` 自体は実行しません**（最後に「git status で確認してね」と表示するだけです）。実行後に、自分で `git status` を実行して結果を確認します（または Cursor のソース管理GUIで差分を確認します）。
 - 結果を確認：`git status`
   - `nothing to commit, working tree clean` → OK（共有作業なし）
   - `modified: cursor_rules (new commits)` → 共有したいなら「6)」へ
