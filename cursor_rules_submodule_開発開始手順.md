@@ -22,8 +22,8 @@
 
 ここまでの議論の背景はシンプルです。
 
-- やりたい：開発開始時に `cursor_rules` のルールや手順を **毎回同じ状態で適用**して、共通認識を自動維持したい
-- そこで考えた：Cursor の「タスク（Run Task…）」をトリガにすれば **クリックで開始できる**
+- やりたい：開発開始時に `cursor_rules` の **ルールを最新に更新して適用**したい。決まった手順で適用して、共通認識を自動維持したい
+- そこで考えた：`cursor_rules` の最新ルールへの更新を、PowerShell のコマンド手打ちよりも、クリック運用に強い Cursor の **「タスク（Run Task… / タスクの実行…）」をトリガ**にすれば、クリックひとつで開始できる
 - ただし分かった：タスクは **コマンド実行機能**であり、AIに Markdown を強制注入したり、Rules を自動登録したりはしない
 - なので到達した：  
   **最初の1回だけ Rules 登録**（`.mdc` を `alwaysApply`）→ 以降は **Cursor のタスク（クリック）で dev-start を実行してサブモジュール更新**  
@@ -40,20 +40,7 @@
    │  └─ 1) サブモジュールを追加して GitHub に保存する
    │      └─（以降は「ある」側へ）
    └─ ある
-      └─ Cursor の Rules に、cursor_rules の .mdc（6本）は登録済み？
-         ├─ いいえ（最初の1回だけ）
-         │  └─ 【最初の1回だけ】Rules登録（重要）
-         │     ├─ 登録元（サブモジュール内）: `<プロジェクトルート>/cursor_rules/.cursor/rules/`
-         │     ├─ 登録する6本（すべて `alwaysApply: true`）
-         │     │  ├─ `venv-only-common.mdc`
-         │     │  ├─ `errors-debug-unittest-common.mdc`
-         │     │  ├─ `post-modification-common.mdc`
-         │     │  ├─ `gui-build-security-common.mdc`
-         │     │  ├─ `markdown-common.mdc`
-         │     │  └─ `update-management-common.mdc`
-         │     └─ 手順の詳細: 本ページの「必要情報」→「【最初の1回だけ】Rules登録（重要）」参照
-         └─ はい（以降は通常運用へ）
-      ├─ ★最強の標準運用：クリック運用（タスクの実行…）で「開発開始」を実行する
+      ├─ ★最強の標準運用：「サブモジュール＝ルールの中身を取得して最新化」するために、クリック運用（タスクの実行…）で「開発開始」を実行する
       │  └─ これは「ターミナルにコマンドを打たずに、メニューから `dev-start`（= 開発開始スクリプト `dev-start-cursor-rules.ps1` を実行して、cursor_rules を取得/必要なら更新する）を実行する」という意味
       │     ├─ 先に `.vscode/tasks.json` を用意すると、`ターミナル` → `タスクの実行…` から選べるようになる
       │     └─ 逆に `tasks.json` が無いと、一覧に `dev-start ...` が出ない（クリック運用できない）
@@ -74,6 +61,19 @@
       │  │     ├─ メニュー: `ターミナル(T)` → `タスクの実行…`
       │  │     └─ 一覧から `dev-start (cursor_rules submodule)` を選ぶ
       │  └─ 代替：ターミナル運用（コマンド直打ち）でも 2) は実行できる → そのまま次へ
+      └─ Cursor の Rules に、cursor_rules の .mdc（6本）は登録済み？
+         ├─ いいえ（最初の1回だけ）
+         │  └─ 【最初の1回だけ】Rules登録（重要）
+         │     ├─ 登録元（サブモジュール内）: `<プロジェクトルート>/cursor_rules/.cursor/rules/`
+         │     ├─ 登録する6本（すべて `alwaysApply: true`）
+         │     │  ├─ `venv-only-common.mdc`
+         │     │  ├─ `errors-debug-unittest-common.mdc`
+         │     │  ├─ `post-modification-common.mdc`
+         │     │  ├─ `gui-build-security-common.mdc`
+         │     │  ├─ `markdown-common.mdc`
+         │     │  └─ `update-management-common.mdc`
+         │     └─ 手順の詳細: 本ページの「必要情報」→「【最初の1回だけ】Rules登録（重要）」参照
+         └─ はい（以降は通常運用へ）
       ├─ 【リモートリポジトリ（親GitHub）の更新まで含めたい】＝他人/別PCにも反映したい
       │  └─ サブモジュールの参照先（ポインタ）を「cursor_rules のリモート最新（origin/main 先端）」に更新して共有したい？
       │     ├─ いいえ → OK（ここでは何もしない）
