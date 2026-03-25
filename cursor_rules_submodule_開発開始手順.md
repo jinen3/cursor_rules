@@ -50,17 +50,29 @@ cd D:\pyscript\tool\py_tool_daily_report
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1
 ```
 
+- `cd ...`: 作業対象プロジェクト（親リポジトリ）のルートへ移動します。サブモジュールの操作は**親リポジトリのルート**で行うのが基本です。
+- `powershell -ExecutionPolicy Bypass -File ...`: `.ps1`（PowerShellスクリプト）を実行します。`ExecutionPolicy` はPCのポリシーでスクリプト実行がブロックされるケースがあるため、**この実行だけ一時的に制限を回避**します（システム設定を恒久変更しません）。
+- `dev-start-cursor-rules.ps1` が内部でやること:
+  - `git submodule update --init --recursive`（未取得/未初期化のサブモジュールを取る）
+  - `git submodule update --remote cursor_rules`（必要なら共通をリモート最新に近づける。親に差分が出る場合あり）
+
 **リモート最新まで上げず、取得だけ（clone 直後など）:**
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -SkipRemote
 ```
 
+- `-SkipRemote`: `--remote` 更新を**行わない**オプションです。まずは「サブモジュールの中身を取るだけ」にしたい場合（clone 直後、まず動作確認したい場合）に使います。
+
 **別パスを明示:**
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -ProjectRoot "D:\pyscript\tool\py_tool_daily_report"
 ```
+
+- `-ProjectRoot "..."`
+  - スクリプトを別フォルダから実行するときに「親リポジトリのルート」を明示します。
+  - 省略すると「今いるフォルダ（カレント）」を親リポジトリのルートとして扱います。
 
 ---
 
@@ -72,16 +84,33 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
    `git clone https://github.com/jinen3/py_tool_daily_report.git`  
    `cd py_tool_daily_report`
 
+- `git clone <URL>`: GitHub のリポジトリをPCにコピー（クローン）します。ここでは**親リポジトリ（プロジェクト本体）**を取得します。
+- `cd ...`: 取得したプロジェクトのフォルダ（親リポジトリのルート）へ移動します。
+
 2. サブモジュールを追加する（**既に `cursor_rules` という名前の通常フォルダがあると失敗**するので、空でない場合は退避または削除）。  
    `git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules`
+
+- `git submodule add <URL> <path>`: 親リポジトリの配下（ここでは `cursor_rules`）に、別リポジトリ（共通の `cursor_rules`）を**サブモジュールとして登録**します。
+  - 登録されるもの: `.gitmodules`（設定ファイル）と、親リポジトリ側の「サブモジュールが指すコミットID」という情報
+  - 注意: `cursor_rules` という**通常フォルダが既に存在**すると失敗します。これは「その場所をサブモジュールの作業ツリーとして使う」ためです。
 
 3. コミットして push する。  
    `git add .gitmodules cursor_rules`  
    `git commit -m "Add cursor_rules submodule"`  
    `git push`
 
+- `git add ...`: 変更を「コミット対象」として登録します。ここでは「サブモジュール設定」と「サブモジュール参照（ポインタ）」をステージします。
+  - `.gitmodules`: サブモジュールのURLと配置パスが書かれます
+  - `cursor_rules`: 中身の全ファイルをコミットするのではなく、基本的に「どのコミットを指すか」という参照情報が入ります
+- `git commit -m "..."`: 変更を履歴として確定します（ローカルのコミット）。
+- `git push`: GitHub にコミットを送ります。これをしないと、他PC/他メンバーが clone しても「サブモジュール設定済み」になりません。
+
 4. **以降の作業開始のたび（共通を最新に近づけたいとき）:** 上記「開発開始コマンド1本」を実行する。  
    - 親リポジトリに「指すコミットが変わった」差分が出たら、方針に従いコミットする。
+
+- `git submodule update --remote cursor_rules` を実行すると、親リポジトリから見て「cursor_rules が指すコミットID」が変わる場合があります。その場合、親リポジトリで `git status` を見ると差分として出ます。
+  - その差分をコミットして push すると、チーム全員が「この時点の cursor_rules」を再現できます。
+  - コミットしない場合、あなたのPCでは更新されても、リモートや他PCには共有されません（運用方針に合わせて判断します）。
 
 **補足:** `D:\pyscript\cursor_rules` に既にある独立クローンは**そのまま残してよい**。サブモジュール用は **各プロジェクト直下の `cursor_rules`** として別に clone される（Git が管理）。
 
@@ -98,7 +127,14 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
    通常の `git clone` だけした場合は続けて:  
    `git submodule update --init --recursive`
 
+- `git clone --recurse-submodules <URL>`: 親リポジトリを clone すると同時に、`.gitmodules` に書かれたサブモジュールも**自動で取得**します。Pattern②の最短です。
+- `git submodule update --init --recursive`: すでに clone 済みの親リポジトリに対して、サブモジュールを取得します。
+  - `--init`: 初回（未初期化）のサブモジュールを初期化して取得します
+  - `--recursive`: サブモジュールの中にさらにサブモジュールがある場合も追って取得します
+
 2. **共通を最新に近づけたいとき:** 上記「開発開始コマンド1本」を実行する（`--remote` まで行う版）。
+
+- clone 直後は「親が記録しているコミット」に揃うだけで、**常に最新にはなりません**。必要に応じて `git submodule update --remote cursor_rules`（またはスクリプト）で更新します。
 
 ---
 
