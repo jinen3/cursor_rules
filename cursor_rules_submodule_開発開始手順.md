@@ -2,6 +2,32 @@
 
 ---
 
+## この手順書は「何を達成するため」のもの？
+
+この手順書のゴールは、各プロジェクトで **共通リポジトリ `cursor_rules` をサブモジュールとして参照**しつつ、
+開発開始時に「共通認識（ルール）」「共通スクリプト」「共通テンプレ」を **迷いなく最新へ揃える**ことです。
+
+結論として、役割分担はこうなります（ここが分かれば迷子になりません）。
+
+- **共通認識を“自動で効かせる”担当（最重要）**：Cursor の Rules に登録した `.mdc`（`alwaysApply: true`）
+  - ポイント：`.mdc` は **存在するだけでは自動で適用されない**ので、プロジェクトごとに **最初の1回だけ登録**が必要
+- **「運用のマスタ説明書」担当**：`cursor_instructions_template.md`
+  - ポイント：タスクやスクリプトは、この Markdown を AI に“自動注入”する機能ではない（人間＋AIが参照する説明書）
+- **「毎回の開始操作をブレなくする」担当（クリック化・1回実行）**：`dev-start`（開発開始スクリプト）
+  - ポイント：`dev-start` は **サブモジュール取得/更新**を自動化する“トリガ”として強い
+  - ただし **Rules 登録（alwaysApply の有効化）までは自動化しない**（別レイヤーの設定）
+
+## 背景（なぜこの手順になった？）
+
+ここまでの議論の背景はシンプルです。
+
+- やりたい：開発開始時に `cursor_rules` のルールや手順を **毎回同じ状態で適用**して、共通認識を自動維持したい
+- そこで考えた：Cursor の「タスク（Run Task…）」をトリガにすれば **クリックで開始できる**
+- ただし分かった：タスクは **コマンド実行機能**であり、AIに Markdown を強制注入したり、Rules を自動登録したりはしない
+- なので到達した：  
+  **最初の1回だけ Rules 登録**（`.mdc` を `alwaysApply`）→ 以降は **dev-start（タスク/スクリプト）でサブモジュール更新**  
+  → これが「共通認識の自動維持」に一番近く、矛盾が出ない
+
 ## まず全体フロー（ツリー状）
 
 > ここを見て全体像 → 次に「必要情報（手順）」 → 最後に「参考情報（解説）」の順で読む想定です。
@@ -87,21 +113,14 @@
 
 前提：プロジェクト（親リポジトリ）は **Cursor の機能で clone 済み**で、いまそのプロジェクトフォルダを Cursor で開いているものとします。
 
-### 【最初の1回だけ】Rules登録（重要）
+### 0) まず確認：このプロジェクトにサブモジュール設定がある？
 
-`cursor_rules` をサブモジュールとして置いただけでは、Cursor が `.mdc` を勝手にルール登録してくれるわけではありません。**最初の1回だけ**、Cursor の Rules に次の 6 本を登録します（すべて `alwaysApply: true`）。
+- `.gitmodules` が **無い**（= まだサブモジュール設定が無い）  
+  → 先に **1) サブモジュールを追加して GitHub に保存する** を実施
+- `.gitmodules` が **ある**（= 既にサブモジュール設定がある）  
+  → 次の **【最初の1回だけ】Rules登録**へ
 
-- 登録元（サブモジュール内）：`<プロジェクトルート>/cursor_rules/.cursor/rules/`
-  - `venv-only-common.mdc`
-  - `errors-debug-unittest-common.mdc`
-  - `post-modification-common.mdc`
-  - `gui-build-security-common.mdc`
-  - `markdown-common.mdc`
-  - `update-management-common.mdc`
-
-この「最初の1回」が終われば、以降はこの文書の 2)（おすすめフロー）で共通認識を維持できる。
-
-### 1) 最初の1回だけ：サブモジュールを追加して GitHub に保存する
+### 1) 最初の1回だけ：サブモジュールを追加して GitHub に保存する（このプロジェクトに設定が無い場合）
 
 親リポジトリのルートで実行します。**注意：親リポジトリのルート直下に `cursor_rules` という名前の通常フォルダが既にあると失敗**します。
 
@@ -113,6 +132,84 @@ git push
 ```
 
 これで以降、他PCで `--recurse-submodules` 付き clone ができるようになります（サブモジュール設定が GitHub に保存された状態）。
+
+### 【最初の1回だけ】Rules登録（重要：共通認識を“自動で効かせる”）
+
+`cursor_rules` をサブモジュールとして置いただけでは、Cursor が `.mdc` を勝手にルール登録してくれるわけではありません。**最初の1回だけ**、Cursor の Rules に次の 6 本を登録します（すべて `alwaysApply: true`）。
+
+- 登録元（サブモジュール内）：`<プロジェクトルート>/cursor_rules/.cursor/rules/`
+  - `venv-only-common.mdc`
+  - `errors-debug-unittest-common.mdc`
+  - `post-modification-common.mdc`
+  - `gui-build-security-common.mdc`
+  - `markdown-common.mdc`
+  - `update-management-common.mdc`
+
+この「最初の1回」が終われば、以降は **2)（開発開始＝dev-start）**を回すだけで、共通ルールが安定して効くようになります。
+
+### 2) ふだん毎回：開発を始めるとき（dev-start でサブモジュール取得＋必要なら更新）
+
+**dev-start を実行する目的（何のため？）**
+
+- **目的**：作業開始前に、プロジェクト内の `cursor_rules` サブモジュールを「使える状態にする」＋（必要なら）`cursor_rules` をリモート最新へ更新して、**共通ルール/スクリプト/テンプレ**を最新に揃えるため
+- **やること（中で実行していること）**：
+  - `git submodule update --init --recursive`（サブモジュールの中身を取得して、空/未初期化を解消）
+  - `git submodule update --remote cursor_rules`（必要なら `cursor_rules` をリモート最新へ更新）
+
+親リポジトリのルートで、次を **1回実行**します。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1
+```
+
+#### ★おすすめ（最短・確実フロー：dev-start → GUIで確認 → 必要なら共有）
+
+1. 2) のスクリプトを実行（更新）
+2. Cursor ソース管理GUIを開く（`Ctrl+Shift+G`）
+3. `cursor_rules (new commits)` が出ていたら
+   - `cursor_rules` をステージ（＋）
+   - メッセージ入力
+   - コミット
+   - 同期/プッシュ（= 6）
+4. 出ていなければ終了（共有作業なし）
+
+補足：
+- このスクリプトは **`git status` 自体は実行しません**（最後に「git status で確認してね」と表示するだけです）。
+- コマンドで確認したい場合は、実行後に `git status` を打ってもOKです。
+
+#### （任意）クリック運用：Run Task…（タスクの実行…）で 2) をクリック実行したい
+
+これは、**「2) の dev-start を、ターミナルで手打ちせずにクリックで実行したい」**という意味です。
+
+- できること：`ターミナル(T)` → `タスクの実行…` から `dev-start (cursor_rules submodule)` を選んで実行できる
+- 前提：プロジェクト側に `.vscode/tasks.json` が必要（無いと “タスク一覧” に表示されません）
+
+最初の1回だけ「プロジェクト側の `.vscode/tasks.json` を用意する」作業をします。
+
+- 雛形（共通リポジトリ側）：`cursor_rules/templates/vscode_tasks.tasks.json.example`
+- 使い方（プロジェクト側）：
+  - **推奨（コピーしない）**：プロジェクト側の `.vscode/tasks.json` を、共通側ファイルへの **シンボリックリンク**にする
+    - リンク元（プロジェクト側）：`<プロジェクトルート>/.vscode/tasks.json`
+    - リンク先（共通側）：`<プロジェクトルート>/cursor_rules/templates/vscode_tasks.tasks.json.example`
+    - これなら “コピーが古くなる問題” を避けられる
+    - **リンク作成（最初の1回）**：リンク作成用スクリプト `cursor_rules/scripts/setup-tasks-link.ps1` で自動作成できる
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1
+```
+
+  - 代替（コピーする）：プロジェクトの `.vscode/tasks.json` としてコピー（最も簡単だが、共通更新が自動反映されない）
+    - **重要**：VS Code/Cursor は、基本的に **プロジェクト側のファイル名が `tasks.json` である必要**があるため、`tasks.json_copy.json` のように「名前を変えて区別する」方式は基本NGです
+    - **代替時の目印**：`setup-tasks-link.ps1` が「コピーで代替」した場合は、`.vscode/tasks_copy.txt` を自動作成します（コピー運用だと一目で分かる）
+
+> 注意：VS Code/Cursor の Task は、基本的に **ワークスペース（プロジェクト）側の `.vscode/tasks.json`** を見に行きます。共通リポジトリ側のファイルを “自動で探して” 使う仕組みはないため、**リンク**か**最小コピー**が現実解です。
+
+Task 実行（クリック）：
+
+- メニューから実行する（画像の場所）
+  - `ターミナル(T)` → `タスクの実行…` → `dev-start (cursor_rules submodule)` を選ぶ
+- コマンドパレットから実行する（覚えやすい）
+  - `Ctrl+Shift+P` → `Tasks: Run Task`（日本語UIだと「タスク: タスクの実行」等）→ `dev-start (cursor_rules submodule)` を選ぶ
 
 ### 6) （共有＝公開）親リポジトリに commit/push する（他人/別PCにも反映）
 
@@ -136,75 +233,6 @@ git commit -m "Update cursor_rules submodule pointer"
 git push
 ```
 
-### 2) ふだん毎回：開発を始めるとき（サブモジュール取得＋必要なら更新）
-
-**dev-start を実行する目的（何のため？）**
-
-- **目的**：作業開始前に、プロジェクト内の `cursor_rules` サブモジュールを「使える状態にする」＋（必要なら）`cursor_rules` をリモート最新へ更新して、**共通ルール/スクリプト/テンプレ**を最新に揃えるため
-- **やること（中で実行していること）**：
-  - `git submodule update --init --recursive`（サブモジュールの中身を取得して、空/未初期化を解消）
-  - `git submodule update --remote cursor_rules`（必要なら `cursor_rules` をリモート最新へ更新）
-- **実行後どうなる？**：
-  - `cursor_rules` の中身（`.cursor/rules` や `scripts` や `templates`）が最新になり、毎回の作業を始めやすくなる
-  - もし親リポジトリ側に `cursor_rules (new commits)` が出たら、それは「親が記録する参照先（ポインタ）が動いた」サインなので、**共有したいなら 6)（commit/push）**で公開する
-
-親リポジトリのルートで、次を **1回実行**します。
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1
-```
-
-このあと、**Cursor のソース管理GUIで確認→必要なら 6)（共有＝公開）**、という流れが一番おすすめです。
-
-#### ★おすすめ（最短・確実フロー）
-
-1. 2) のスクリプトを実行（更新）
-2. Cursor ソース管理GUIを開く（`Ctrl+Shift+G`）
-3. `cursor_rules (new commits)` が出ていたら
-   - `cursor_rules` をステージ（＋）
-   - メッセージ入力
-   - コミット
-   - 同期/プッシュ（= 6）
-4. 出ていなければ終了（共有作業なし）
-
-補足：
-- このスクリプトは **`git status` 自体は実行しません**（最後に「git status で確認してね」と表示するだけです）。
-- コマンドで確認したい場合は、実行後に `git status` を打ってもOKです。
-
-#### （参考）クリック運用：Run Task… で「開発開始」を実行する
-
-これは、**「ターミナルでコマンドを打たずに、メニューから “開発開始（dev-start）” をクリック実行したい」**という意味です。
-
-- できること：`ターミナル(T)` → `タスクの実行…` から、`dev-start (cursor_rules submodule)` を選んで実行できる
-- 前提：プロジェクト側に `.vscode/tasks.json` が必要（無いと “タスク一覧” に表示されません）
-
-そのため、最初の1回だけ「プロジェクト側の `.vscode/tasks.json` を用意する」作業をします。
-
-- 雛形（共通リポジトリ側）：`cursor_rules/templates/vscode_tasks.tasks.json.example`
-- 使い方（プロジェクト側）：
-  - **推奨（コピーしない）**：プロジェクト側の `.vscode/tasks.json` を、共通側ファイルへの **シンボリックリンク**にする
-    - リンク元（プロジェクト側）：`<プロジェクトルート>/.vscode/tasks.json`
-    - リンク先（共通側）：`<プロジェクトルート>/cursor_rules/templates/vscode_tasks.tasks.json.example`
-    - これなら “コピーが古くなる問題” を避けられる
-    - **リンク作成（最初の1回）**：共通側のセットアップスクリプトで自動作成できる
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1
-```
-
-  - 代替（コピーする）：プロジェクトの `.vscode/tasks.json` としてコピー（最も簡単だが、共通更新が自動反映されない）
-    - **重要**：VS Code/Cursor は、基本的に **プロジェクト側のファイル名が `tasks.json` である必要**があるため、`tasks.json_copy.json` のように「名前を変えて区別する」方式は基本NGです
-    - **代替時の目印**：`setup-tasks-link.ps1` が「コピーで代替」した場合は、`.vscode/tasks_copy.txt` を自動作成します（コピー運用だと一目で分かる）
-
-> 注意：VS Code/Cursor の Task は、基本的に **ワークスペース（プロジェクト）側の `.vscode/tasks.json`** を見に行きます。共通リポジトリ側のファイルを “自動で探して” 使う仕組みはないため、**リンク**か**最小コピー**が現実解です。
-
-Task 実行（クリック）：
-
-- メニューから実行する（画像の場所）
-  - `ターミナル(T)` → `タスクの実行…` → `dev-start (cursor_rules submodule)` を選ぶ
-- コマンドパレットから実行する（覚えやすい）
-  - `Ctrl+Shift+P` → `Tasks: Run Task`（日本語UIだと「タスク: タスクの実行」等）→ `dev-start (cursor_rules submodule)` を選ぶ
-
 ### 7) clone 直後など：サブモジュール（cursor_rules）の中身を「取得だけ」したい（更新はまだしない）
 
 ```powershell
@@ -221,6 +249,21 @@ git submodule update --init --recursive
 
 - **スクリプトで統一したい**（手順2/3/7を同じ呼び出し方にしたい）場合に便利だからです。
 - スクリプトは `.gitmodules` やサブモジュールの存在チェックもしてくれるため、失敗したときに原因が分かりやすいです。
+
+### 3) 最短ルート：とにかく「最新にする」だけやりたい（確認は後回し）
+
+「最新かどうかを丁寧に確認するより、まず更新してしまいたい」場合の最短です。
+
+```powershell
+git submodule update --init --recursive
+git submodule update --remote cursor_rules
+git status
+```
+
+- `git submodule update --init --recursive` は、clone 直後などで **サブモジュールの中身が未取得/未初期化**のときに必要です。
+  - これが無いと、`cursor_rules` フォルダが空のまま（または未初期化のまま）で、`--remote` がうまく動かない場合があります。
+- `git status` が `modified: cursor_rules (new commits)` なら：共有したい場合は 6)（commit/push）へ
+- 本当に `origin/main` 先端まで行けているか確実にしたい場合は、あとから 5-C で確認します
 
 ### 4) （ローカル）最新状態を確認する（確認）
 
@@ -303,21 +346,6 @@ git status
   - **他人/別PCにも反映したい（共有したい）場合**：6) の commit/push（公開）をします（親リポジトリが指す参照先を GitHub に保存）
   - **自分のPCだけでよい場合**：6) は不要です（共有しない）
   - **本当にリモート最新か確実にしたい場合**：5-C（`HEAD` と `origin/main` の比較）で確認します
-
-### 3) 最短ルート：とにかく「最新にする」だけやりたい（確認は後回し）
-
-「最新かどうかを丁寧に確認するより、まず更新してしまいたい」場合の最短です。
-
-```powershell
-git submodule update --init --recursive
-git submodule update --remote cursor_rules
-git status
-```
-
-- `git submodule update --init --recursive` は、clone 直後などで **サブモジュールの中身が未取得/未初期化**のときに必要です。
-  - これが無いと、`cursor_rules` フォルダが空のまま（または未初期化のまま）で、`--remote` がうまく動かない場合があります。
-- `git status` が `modified: cursor_rules (new commits)` なら：共有したい場合は 6)（commit/push）へ
-- 本当に `origin/main` 先端まで行けているか確実にしたい場合は、あとから 5-C で確認します
 
 ---
 
