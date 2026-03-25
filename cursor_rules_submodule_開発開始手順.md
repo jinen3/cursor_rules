@@ -32,6 +32,7 @@
       │     └─ 逆に `tasks.json` が無いと、一覧に `dev-start ...` が出ない（クリック運用できない）
       │  ├─ はい（最初の1回だけ）
       │  │  ├─ `.vscode/tasks.json` を用意して Task 化する
+      │  │  │  └─ 目的：★おすすめの「2) 開発開始スクリプト」を Cursor 機能（`タスクの実行…`）でクリック実行できるようにする準備
       │  │  │  ├─ 推奨（コピーしない）: `.vscode/tasks.json` を共通側ファイルへのシンボリックリンクにする
       │  │  │  │  ├─ リンク元: `<プロジェクトルート>/.vscode/tasks.json`
       │  │  │  │  └─ リンク先: `<プロジェクトルート>/cursor_rules/templates/vscode_tasks.tasks.json.example`
