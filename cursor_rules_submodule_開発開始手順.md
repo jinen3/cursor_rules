@@ -15,7 +15,16 @@
    └─ ある
       └─ Cursor の Rules に、cursor_rules の .mdc（6本）は登録済み？
          ├─ いいえ（最初の1回だけ）
-         │  └─ 【最初の1回だけ】Rules登録（重要）を実施（本ページの「必要情報」参照）
+         │  └─ 【最初の1回だけ】Rules登録（重要）
+         │     ├─ 登録元（サブモジュール内）: `<プロジェクトルート>/cursor_rules/.cursor/rules/`
+         │     ├─ 登録する6本（すべて `alwaysApply: true`）
+         │     │  ├─ `venv-only-common.mdc`
+         │     │  ├─ `errors-debug-unittest-common.mdc`
+         │     │  ├─ `post-modification-common.mdc`
+         │     │  ├─ `gui-build-security-common.mdc`
+         │     │  ├─ `markdown-common.mdc`
+         │     │  └─ `update-management-common.mdc`
+         │     └─ 手順の詳細: 本ページの「必要情報」→「【最初の1回だけ】Rules登録（重要）」参照
          └─ はい（以降は通常運用へ）
       ├─ クリック運用（Run Task…）で「開発開始」を実行したい？
       │  ├─ はい（最初の1回だけ）
@@ -23,7 +32,11 @@
       │  │  │  ├─ 推奨（コピーしない）: `.vscode/tasks.json` を共通側ファイルへのシンボリックリンクにする
       │  │  │  │  ├─ リンク元: `<プロジェクトルート>/.vscode/tasks.json`
       │  │  │  │  └─ リンク先: `<プロジェクトルート>/cursor_rules/templates/vscode_tasks.tasks.json.example`
-      │  │  │  ├─ リンク作成: `powershell ... setup-tasks-link.ps1`
+      │  │  │  ├─ リンク作成（最初の1回）: 次を親リポジトリのルートで 1回実行
+      │  │  │  │  ├─ リンク作成用スクリプト: `cursor_rules/scripts/setup-tasks-link.ps1`
+      │  │  │  │  └─ 実行コマンド:
+      │  │  │  │
+      │  │  │  │     `powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1`
       │  │  │  └─ 代替（コピー）: `.vscode/tasks.json` をコピー（※ 共通更新は自動反映されない）
       │  │  │     └─ 目印: `.vscode/tasks_copy.txt` があれば「コピー運用」だと一目で分かる
       │  │  └─ Task 実行: Cursor で `Run Task…` → `dev-start (cursor_rules submodule)`
