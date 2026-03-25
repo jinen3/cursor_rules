@@ -15,14 +15,19 @@
    └─ ある
       ├─ 開発を始めたい（ふだん毎回）
       │  └─ 3) 開発開始スクリプトを1回実行
-      │      └─ git status が `modified: cursor_rules (new commits)`？
+      │      └─ 目的：cursor_rules の参照先（ポインタ）を最新に近づけたい？
       │         ├─ いいえ → OK（共有作業なし）
-      │         └─ はい → 共有したい？
-      │             ├─ いいえ → 自分のPCだけで作業OK
-      │             └─ はい → 2) 親リポジトリに commit/push
-      ├─ clone 直後で「取得だけ」したい
-      │  └─ 4) -SkipRemote（更新せず取得のみ）
-      └─ サブモジュールが最新か確認したい／最新にしたい
+      │         └─ はい → まず「最新か確認」→ 必要なら「最新にする」
+      │             ├─ 5) 最新かを調べる（確認）
+      │             └─ 6) 最新にする（更新）
+      │                 └─ git status が `modified: cursor_rules (new commits)`？
+      │                    ├─ いいえ → OK（共有作業なし）
+      │                    └─ はい → 共有したい？
+      │                        ├─ いいえ → 自分のPCだけで作業OK
+      │                        └─ はい → 2) 親リポジトリに commit/push
+      ├─ clone 直後で「サブモジュール（cursor_rules）の中身を取得だけ」したい（更新はまだ）
+      │  └─ 4) -SkipRemote（更新せず、親が指すコミットに揃えるだけ）
+      └─ 目的：サブモジュールが最新か確認したい／最新にしたい（単独で実行したい）
          ├─ 5) 最新かを調べる（確認）
          └─ 6) 最新にする（更新）
              └─ git status で差分が出た＆共有したい → 2) 親リポジトリに commit/push
@@ -66,7 +71,7 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
   - `nothing to commit, working tree clean` → OK（共有作業なし）
   - `modified: cursor_rules (new commits)` → 共有したいなら「2)」へ
 
-### 4) clone 直後など：まず “取得だけ” にしたい（更新はまだしない）
+### 4) clone 直後など：サブモジュール（cursor_rules）の中身を「取得だけ」したい（更新はまだしない）
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -SkipRemote
@@ -295,9 +300,9 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
   - **自分だけで使う**なら、そのまま作業してOK  
   - **他人/別PCにも同じ状態にしたい**なら、④の手順どおりに `git add cursor_rules` → `git commit` → `git push` します
 
-### リモート最新まで上げず、取得だけ（clone 直後など）
+### リモート最新まで上げず、サブモジュール（cursor_rules）の中身を取得だけ（clone 直後など）
 
-### 【質問3】「取得だけ」ってどういうこと？
+### 【質問3】「（サブモジュールの中身を）取得だけ」ってどういうこと？
 
 ここでいう「取得だけ」は **“サブモジュールの中身を取る（未取得/未初期化を解消する）だけ”** で、
 **参照先コミット（ポインタ）を最新へ付け替えるところまではやらない**、という意味です。
