@@ -27,6 +27,9 @@
          │     └─ 手順の詳細: 本ページの「必要情報」→「【最初の1回だけ】Rules登録（重要）」参照
          └─ はい（以降は通常運用へ）
       ├─ クリック運用（Run Task…）で「開発開始」を実行したい？
+      │  └─ これは「ターミナルにコマンドを打たずに、メニューから `dev-start` を実行したい」という意味
+      │     ├─ 先に `.vscode/tasks.json` を用意すると、`ターミナル` → `タスクの実行…` から選べるようになる
+      │     └─ 逆に `tasks.json` が無いと、一覧に `dev-start ...` が出ない（クリック運用できない）
       │  ├─ はい（最初の1回だけ）
       │  │  ├─ `.vscode/tasks.json` を用意して Task 化する
       │  │  │  ├─ 推奨（コピーしない）: `.vscode/tasks.json` を共通側ファイルへのシンボリックリンクにする
@@ -159,7 +162,12 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 
 #### （参考）クリック運用：Run Task… で「開発開始」を実行する
 
-「ターミナルでコマンドを打たない」運用に寄せたい場合は、プロジェクト側に `.vscode/tasks.json` を置いて Task 化できる。
+これは、**「ターミナルでコマンドを打たずに、メニューから “開発開始（dev-start）” をクリック実行したい」**という意味です。
+
+- できること：`ターミナル(T)` → `タスクの実行…` から、`dev-start (cursor_rules submodule)` を選んで実行できる
+- 前提：プロジェクト側に `.vscode/tasks.json` が必要（無いと “タスク一覧” に表示されません）
+
+そのため、最初の1回だけ「プロジェクト側の `.vscode/tasks.json` を用意する」作業をします。
 
 - 雛形（共通リポジトリ側）：`cursor_rules/templates/vscode_tasks.tasks.json.example`
 - 使い方（プロジェクト側）：
