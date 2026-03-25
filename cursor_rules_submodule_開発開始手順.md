@@ -15,16 +15,14 @@
    └─ ある
       ├─ 開発を始めたい（ふだん毎回）
       │  └─ 3) 開発開始スクリプトを1回実行
-      │      └─ 目的：cursor_rules の参照先（ポインタ）を最新に近づけたい？
-      │         ├─ いいえ → OK（共有作業なし）
-      │         └─ はい → まず「最新か確認」→ 必要なら「最新にする」
-      │             ├─ 5) 最新かを調べる（確認）
-      │             └─ 6) 最新にする（更新）
-      │                 └─ git status が `modified: cursor_rules (new commits)`？
-      │                    ├─ いいえ → OK（共有作業なし）
-      │                    └─ はい → 共有したい？
-      │                        ├─ いいえ → 自分のPCだけで作業OK
-      │                        └─ はい → 2) 親リポジトリに commit/push
+      │      └─ （ローカル）サブモジュールを最新に近づけたい？
+      │         ├─ いいえ → OK（ここでは何もしない）
+      │         └─ はい → 5) 最新かを調べる → 必要なら 6) 最新にする（更新）
+      │             └─ git status が `modified: cursor_rules (new commits)`？
+      │                ├─ いいえ → OK（親が指す参照先は変わっていない）
+      │                └─ はい → （共有）他人/別PCにも反映したい？
+      │                    ├─ いいえ → 自分のPCだけで作業OK（共有しない）
+      │                    └─ はい → 2) 親リポジトリに commit/push（共有＝公開）
       ├─ clone 直後で「サブモジュール（cursor_rules）の中身を取得だけ」したい（更新はまだ）
       │  └─ 4) -SkipRemote（更新せず、親が指すコミットに揃えるだけ）
       └─ 目的：サブモジュールが最新か確認したい／最新にしたい（単独で実行したい）
@@ -50,7 +48,11 @@ git push
 
 これで以降、他PCで `--recurse-submodules` 付き clone ができるようになります（サブモジュール設定が GitHub に保存された状態）。
 
-### 2) 共有したい更新が出たとき：親リポジトリに commit/push する（他人/別PCにも反映）
+### 2) （共有＝公開）親リポジトリに commit/push する（他人/別PCにも反映）
+
+これは「サブモジュールを最新にする（5/6 や 3 の実行の結果）**親が指す参照先（ポインタ）が変わった**」ときに、
+その変更を **GitHub 上の親リポジトリに保存して、他人/別PCにも同じ状態を再現できるようにする**手順です。
+（= ローカルで更新しただけでは共有されないため、最後に “公開” します）
 
 ```powershell
 git status
@@ -77,7 +79,7 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -SkipRemote
 ```
 
-### 5) サブモジュールが最新かを調べる（確認）
+### 5) （ローカル）サブモジュールが最新かを調べる（確認）
 
 まず「いま親リポジトリが指している `cursor_rules` のコミットID」を確認します。
 
@@ -96,7 +98,7 @@ git -C cursor_rules rev-parse origin/main
 - `HEAD` と `origin/main` が同じなら：`cursor_rules` 側としては最新です（※ 親リポジトリが常に最新を指すとは限りません）。
 - `HEAD` と `origin/main` が違うなら：`cursor_rules` 側に新しい更新が来ています（次の「6)」へ）。
 
-### 6) サブモジュールを最新にする（更新）
+### 6) （ローカル）サブモジュールを最新にする（更新）
 
 親リポジトリが指している `cursor_rules` の参照先（ポインタ）を、リモート最新に近づけます。
 
@@ -105,7 +107,9 @@ git submodule update --remote cursor_rules
 git status
 ```
 
-- `git status` で `modified: cursor_rules (new commits)` が出たら、**共有したい場合は「2)」の commit/push** をします。
+- `git status` で `modified: cursor_rules (new commits)` が出たら「親が指す参照先（ポインタ）が変わった」状態です。
+  - **他人/別PCにも反映したい（共有したい）場合**：2) の commit/push（公開）をします
+  - **自分のPCだけでよい場合**：2) は不要です（共有しない）
 
 ---
 
