@@ -15,9 +15,9 @@
    └─ ある
       ├─ 開発を始めたい（ふだん毎回）
       │  └─ 3) 開発開始スクリプトを1回実行
-      │      └─ （ローカル）サブモジュールを最新に近づけたい？
+      │      └─ （ローカル操作で）サブモジュールの参照先を「リモート最新」に近づけたい？
       │         ├─ いいえ → OK（ここでは何もしない）
-      │         └─ はい → 5) 最新かを調べる → 必要なら 6) 最新にする（更新）
+      │         └─ はい → 5) 最新状態を確認 → 必要なら 6) 最新にする（更新）
       │             └─ git status が `modified: cursor_rules (new commits)`？
       │                ├─ いいえ → OK（親が指す参照先は変わっていない）
       │                └─ はい → （共有）他人/別PCにも反映したい？
@@ -79,13 +79,36 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -SkipRemote
 ```
 
-### 5) （ローカル）サブモジュールが最新かを調べる（確認）
+### 5) （ローカル）最新状態を確認する（確認）
 
-まず「いま親リポジトリが指している `cursor_rules` のコミットID」を確認します。
+ここでの「確認」は 2 種類あります。
+
+- **A. 共有の観点（親リポジトリ側の差分）**：他人/別PCにも反映する必要がある変更が出ているか？
+- **B. 更新の観点（サブモジュール側の最新）**：`cursor_rules` 側にリモート最新（例: `origin/main`）の更新が来ているか？
+
+#### 5-A) まずは `git status` で「共有の差分」を確認（いちばん大事）
+
+親リポジトリのルートで実行します。
+
+```powershell
+git status
+```
+
+- `nothing to commit, working tree clean`  
+  → 親リポジトリの観点では差分なし（**共有作業なし**）
+- `modified: cursor_rules (new commits)`  
+  → 親が指す参照先（ポインタ）が変わっている（**共有したいなら 2) へ**）
+
+#### 5-B) 次に `git submodule status` で「親が指しているコミットID」を確認
 
 ```powershell
 git submodule status cursor_rules
 ```
+
+これは「親リポジトリが、`cursor_rules` の **どのコミットIDを指しているか**」を見るコマンドです。
+（`git status` は“差分があるかどうか”は分かりますが、“どのコミットIDか”を明確に見る目的ではこちらが確実です）
+
+#### 5-C) `cursor_rules` 側が「リモート最新か」を確認（必要なときだけ）
 
 次に「`cursor_rules` リポジトリ側のリモート最新（例: `origin/main` の先端）」を確認します。
 
@@ -97,6 +120,27 @@ git -C cursor_rules rev-parse origin/main
 
 - `HEAD` と `origin/main` が同じなら：`cursor_rules` 側としては最新です（※ 親リポジトリが常に最新を指すとは限りません）。
 - `HEAD` と `origin/main` が違うなら：`cursor_rules` 側に新しい更新が来ています（次の「6)」へ）。
+
+#### 【質問①】なぜ `git status` だけでは「最新かどうか」が分からないの？
+
+`git status` は **親リポジトリの作業ツリーに“変更があるか”**を表示するコマンドです。サブモジュールについては主に次を教えてくれます。
+
+- 親が指す参照先（ポインタ）が変わったか（例: `modified: cursor_rules (new commits)`）
+
+一方で、`git status` だけでは **「`cursor_rules` のリモート（例: `origin/main`）が進んでいるか」**は分かりません。
+リモートが進んでいるかを知るには、`cursor_rules` 側で `fetch` して比較する必要があるため、5-C のような確認をします。
+
+#### `git status` と `git submodule status cursor_rules` の違い（ざっくり）
+
+- `git status`（親リポジトリで実行）
+  - **目的**：親リポジトリに差分があるか（共有が必要か）を確認する
+  - **見えるもの**：`modified: cursor_rules (new commits)` のような「参照先が変わった」サイン
+- `git submodule status cursor_rules`（親リポジトリで実行）
+  - **目的**：親が指している `cursor_rules` の **コミットID** を確認する
+  - **見えるもの**：`cursor_rules` が指しているコミットID（どの版を使っているか）
+
+どちらが正しい、ではなく **目的が違う**ので両方使い分けます。
+
 
 ### 6) （ローカル）サブモジュールを最新にする（更新）
 
