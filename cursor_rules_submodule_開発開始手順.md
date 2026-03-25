@@ -235,6 +235,14 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -ProjectRoot "D:\pyscript\tool\py_tool_daily_report"
 ```
 
+- 上のコマンドを「部品」に分けるとこうなります。
+  - `powershell`: PowerShell を起動して実行します（今いる PowerShell から “別の PowerShell” でスクリプト実行する形になります）。
+  - `-ExecutionPolicy Bypass`: スクリプト実行が制限されているPCでも、**この実行だけ**通すための指定です（設定を恒久変更しません）。
+  - `-File .\cursor_rules\scripts\dev-start-cursor-rules.ps1`: 実行するスクリプトの場所です。`.\` は「今いるフォルダ（カレント）」を意味します。
+    - なので通常は、親リポジトリのルートで実行すると分かりやすいです（例：`D:\pyscript\tool\py_tool_daily_report` で実行）。
+  - `-ProjectRoot "D:\pyscript\tool\py_tool_daily_report"`: スクリプトに渡す「引数」です。**処理対象の親リポジトリのルート**を明示します。
+    - 今いる場所がどこでも、このパスを親リポジトリのルートとして扱って処理します。
+
 - `-ProjectRoot "..."`
   - スクリプトを別フォルダから実行するときに「親リポジトリのルート」を明示します。
   - 省略すると「今いるフォルダ（カレント）」を親リポジトリのルートとして扱います。
