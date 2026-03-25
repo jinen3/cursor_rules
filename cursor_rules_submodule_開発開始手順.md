@@ -46,6 +46,36 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -SkipRemote
 ```
 
+### 5) サブモジュールが最新かを調べる（確認）
+
+まず「いま親リポジトリが指している `cursor_rules` のコミットID」を確認します。
+
+```powershell
+git submodule status cursor_rules
+```
+
+次に「`cursor_rules` リポジトリ側のリモート最新（例: `origin/main` の先端）」を確認します。
+
+```powershell
+git -C cursor_rules fetch
+git -C cursor_rules rev-parse HEAD
+git -C cursor_rules rev-parse origin/main
+```
+
+- `HEAD` と `origin/main` が同じなら：`cursor_rules` 側としては最新です（※ 親リポジトリが常に最新を指すとは限りません）。
+- `HEAD` と `origin/main` が違うなら：`cursor_rules` 側に新しい更新が来ています（次の「6)」へ）。
+
+### 6) サブモジュールを最新にする（更新）
+
+親リポジトリが指している `cursor_rules` の参照先（ポインタ）を、リモート最新に近づけます。
+
+```powershell
+git submodule update --remote cursor_rules
+git status
+```
+
+- `git status` で `modified: cursor_rules (new commits)` が出たら、**共有したい場合は「2)」の commit/push** をします。
+
 ---
 
 ## 参考情報：解説（やさしい説明）
