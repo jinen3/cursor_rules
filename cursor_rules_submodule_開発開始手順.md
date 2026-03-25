@@ -14,7 +14,8 @@
    │      └─（以降は「ある」側へ）
    └─ ある
       ├─ 開発を始めたい（ふだん毎回）
-      │  └─ 2) 開発開始スクリプトを1回実行
+      │  ├─ 2) 開発開始スクリプトを1回実行（ラク・安全）
+      │  └─ 3) 最短ルートで最新化（コマンド直打ちでもOK）
       │      └─ サブモジュールの参照先（ポインタ）を「cursor_rules のリモート最新（origin/main 先端）」に更新したい？
       │         ├─ いいえ → OK（ここでは何もしない）
       │         └─ はい
@@ -88,6 +89,17 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -SkipRemote
 ```
+
+- これは中で `git submodule update --init --recursive` を実行しており、**やりたいことは次の1行と同じ**です（より短い）。
+
+```powershell
+git submodule update --init --recursive
+```
+
+#### では、なぜスクリプト版（-SkipRemote）も載せているの？
+
+- **スクリプトで統一したい**（手順2/3/7を同じ呼び出し方にしたい）場合に便利だからです。
+- スクリプトは `.gitmodules` やサブモジュールの存在チェックもしてくれるため、失敗したときに原因が分かりやすいです。
 
 ### 4) （ローカル）最新状態を確認する（確認）
 
