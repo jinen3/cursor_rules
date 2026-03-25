@@ -1,0 +1,28 @@
+---
+description: 共通ルール・共通教材とプロジェクト固有の更新場所を分けるルール
+alwaysApply: true
+---
+
+# 更新管理のルール
+
+**共通で更新するもの（cursor_rules リポジトリで行う）**
+- .cursor/rules の次の 6 本の .mdc（venv-only-common.mdc, errors-debug-unittest-common.mdc, post-modification-common.mdc, gui-build-security-common.mdc, markdown-common.mdc, update-management-common.mdc）、cursor_instructions_template.md、共通教材（5.1〜5.4 の textbook_01_overview_common.md, textbook_02_tutorial_common.md, textbook_03_debug_common.md, textbook_04_errors_common.md）。内容は各プロジェクトの積み重ね・出典明記。教材は `cursor_instructions_template.md` セクション5の「記載の方針（Python 初心者）」に従う。
+- 編集したら、**commit および push して GitHub にアップロードする**まで行う。編集 → commit → push は **cursor_rules** 側で行う。各プロジェクトでは触らない。
+
+**プロジェクトで更新するもの（各プロジェクトのフォルダで行う）**
+- ソースコード、readme.md・readme.txt、教材（5.1〜5.4 の textbook_*_project.md）。内容は当プロジェクトのみ。
+- 編集 → commit → push は **そのプロジェクトのフォルダ**で行う。共通リポジトリは触らない。
+
+**共通リポジトリ（cursor_rules）で書類を更新したとき**
+- 共通の .mdc・cursor_instructions_template.md・共通教材を編集したら、**commit および push して GitHub にアップロードする**まで行う。push しないと各プロジェクトに最新が反映されない。Cursor が共通リポジトリを編集したときは、ターミナルで commit および push を実行する。
+
+**プロジェクト側で共通の最新を取り込むとき**
+- **禁止：プロジェクトの .cursor/rules/ に上記 6 本の .mdc（venv-only-common.mdc, errors-debug-unittest-common.mdc, post-modification-common.mdc, gui-build-security-common.mdc, markdown-common.mdc, update-management-common.mdc）をコピー・配置しないこと。** これら 6 本は常にサブモジュール（cursor_rules）内の .cursor/rules/ を参照する。コピーすると古いかどうか分からなくなり、共通の更新が反映されない。
+- **ルール：共通リポジトリの内容を常に最新版に更新してから使う。** プロジェクトで作業を始める前に、プロジェクトのフォルダで `git submodule update --remote cursor_rules` を実行する（Cursor のターミナルで可）。共通側で push 済みの最新が取り込まれる。
+
+**Cursor が実行すること（本ファイル update-management-common.mdc のルール）**
+- **開始時に共通ルール文書を読んで従う：** ユーザーの返信の趣旨が作業を始めたい・このプロジェクトで作業するタイミングだと Cursor が判断したときは、**Cursor が**サブモジュール内の `cursor_rules/cursor_instructions_template.md`（Cursor 開発 共通ルール文書）を開いて内容に従う。必ずしも「作業を始める」などの表現でなくても、その趣旨と判断したら実行する。とくにセクション 0（セットアップ）・1（cursor/rules の登録）・8（プロジェクト開始時の実行順序）を実行する。これにより共通ルールが毎回確実に適用される。
+- **サブモジュールの更新：** ユーザーの返信の趣旨が共通を最新にしたい・cursor_rules を更新したいと Cursor が判断したときは、**Cursor が**プロジェクトのフォルダをカレントにしたターミナルで `git submodule update --remote cursor_rules` を実行する。必ずしも「共通を最新にして」などの表現でなくても、その趣旨と判断したら実行する。Cursor はこのコマンドをターミナルで実行できる。実行後、共通リポジトリの最新がプロジェクトに取り込まれたことを簡潔に伝える。
+- **チャット終了時に知見を追記：** ユーザーの返信の趣旨が一区切りついた・チャットでの作業が終わったと Cursor が判断したときは、**Cursor が** 7.3 に従い、当チャットで**最終的にうまくいった**知見（エラー対策ができたときの対応・うまくいったデバッグ方法・有効だった単体テスト）だけを ① ② ③ に追記する。必ずしも「今日はここまで」などの表現でなくても、その趣旨と判断したら実行する。トライ＆エラー中の未解決・失敗した試行は追記しない。**GUI の場合は** Cursor がマウス操作できないため、うまくいったかはユーザーが次のチャットの返信で伝える。チャット毎に追記し、**ユーザーの返信の趣旨で判断する。** 趣旨がうまくいった・解決したと Cursor が判断した時点で、その内容を残す（同じ表現でなくてもよい）。趣旨が解決に至っていないと判断したときは残さない（同じ言い方でなくても、そう判断したら残さない）。複数チャット後にまとめて更新すると前のチャットの内容が漏れるため、毎回のチャット終了時に実行する。
+
+詳細（リポジトリの役割・サブモジュール手順・Cursor の使い方）は **Cursor開発共通ルール_ユーザー向け説明.md の参考4** を参照。

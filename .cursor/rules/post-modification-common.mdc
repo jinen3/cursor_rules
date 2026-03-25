@@ -1,0 +1,28 @@
+---
+description: コード修正・機能追加後の必須手順（README・教材の更新）
+alwaysApply: true
+---
+
+# 修正完了後の標準手順
+
+コードを修正・追加した後は、必ず以下を**アプリ種別に応じて**順番に実施すること。
+
+## デスクトップアプリ（exe）の場合
+
+1. アプリが起動中であれば強制終了する。
+2. .venv 環境で exe をビルドする。
+3. README の更新: プロジェクトフォルダ直下の readme.md・readme.txt と dist フォルダ内の readme.md・readme.txt の計 4 ファイルを、内容に合わせて更新する。プロジェクトフォルダ直下と dist 内は同一内容にすること。
+4. 教材の更新: プロジェクトフォルダ直下と dist フォルダ内の、textbook_01_overview_project.md, textbook_02_tutorial_project.md, textbook_03_debug_project.md, textbook_04_errors_project.md の計 8 ファイルを、現在のコードに合わせて更新する。記載は `cursor_instructions_template.md` セクション5の「記載の方針（Python 初心者）」に従う。
+
+## WEBアプリの場合（dist がないためプロジェクトフォルダ直下のみ）
+
+1. サーバーを再起動する。
+2. README の更新: プロジェクトフォルダ直下の readme.md・readme.txt を、内容に合わせて更新する。
+3. 教材の更新: プロジェクトフォルダ直下の textbook_01_overview_project.md, textbook_02_tutorial_project.md, textbook_03_debug_project.md, textbook_04_errors_project.md の 4 ファイルを、現在のコードに合わせて更新する。記載は `cursor_instructions_template.md` セクション5の「記載の方針（Python 初心者）」に従う。
+
+上記を完了したら、完了報告をすること。
+
+---
+
+**チャットでの作業が終わったとき（一区切りつけたとき）**
+- 当チャットで**最終的にうまくいった**知見（エラー対策ができたときの対応・デバッグの良い方法・有効だった単体テスト）があれば、cursor_instructions_template.md の **7.3** に従い、① ② ③ に追記すること。トライ＆エラー中の未解決・失敗した試行は追記しない。**GUI の場合は** Cursor がマウス操作できないため、うまくいったかはユーザーが次のチャットの返信で伝える。チャット毎に追記し、**ユーザーの返信の趣旨で判断する。** 趣旨がうまくいった・解決したと Cursor が判断した時点で、その内容を残す（同じ表現でなくてもよい）。趣旨が解決に至っていないと判断したときは残さない（同じ言い方でなくても、そう判断したら残さない）。複数チャット後にまとめて更新すると前のチャットの内容が漏れるため、毎回のチャット終了時に更新する。
