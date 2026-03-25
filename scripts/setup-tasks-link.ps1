@@ -64,5 +64,19 @@ try {
     Write-Host "理由: $($_.Exception.Message)" -ForegroundColor DarkGray
     Copy-Item -LiteralPath $targetPath -Destination $linkPath -Force
     Write-Host "コピーを作成しました（注意: 共通更新は自動反映されません）: $linkPath" -ForegroundColor Yellow
+
+    # コピー運用だと「リンクではない」ことが分かりにくいので、目印ファイルを作る（_copy 付き）
+    $markerPath = Join-Path $vscodeDir "tasks_copy.txt"
+    $markerBody = @(
+        "This project uses a COPIED tasks.json (not a symlink).",
+        "Copied from:",
+        $targetPath,
+        "Copied to:",
+        $linkPath,
+        "Copied at:",
+        (Get-Date).ToString("s")
+    ) -join [Environment]::NewLine
+    Set-Content -LiteralPath $markerPath -Value $markerBody -Encoding UTF8
+    Write-Host "目印ファイルを作成しました: $markerPath" -ForegroundColor Yellow
 }
 
