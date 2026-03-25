@@ -17,9 +17,10 @@
       │  └─ 3) 開発開始スクリプトを1回実行
       │      └─ サブモジュールの参照先（ポインタ）を「cursor_rules のリモート最新（origin/main 先端）」に更新したい？
       │         ├─ いいえ → OK（ここでは何もしない）
-      │         └─ はい → 5) 最新状態を確認
-      │                 → 必要なら 6) 最新にする（更新）
-      │                 └─ git status の結果が `modified: cursor_rules (new commits)`？
+      │         └─ はい
+      │            ├─ 最短でやりたい（確認は後回し）→ 7) 最短ルートで最新化
+      │            └─ 丁寧にやりたい → 5) 最新状態を確認 → 必要なら 6) 最新にする（更新）
+      │               └─ git status の結果が `modified: cursor_rules (new commits)`？
       │                ├─ いいえ → OK（親が指す参照先は変わっていない）
       │                └─ はい → （共有）他人/別PCにも反映したい？
       │                    ├─ いいえ → 自分のPCだけで作業OK（共有しない）
@@ -28,7 +29,8 @@
       │  └─ 4) -SkipRemote（更新せず、親が指すコミットに揃えるだけ）
       └─ 目的：（ローカルリポジトリ単独での実行）サブモジュールが最新か確認したい／最新にしたい
          ├─ 5) 最新かを調べる（確認）
-         └─ 6) 最新にする（更新）
+         ├─ 6) 最新にする（更新）
+         └─ 7) 最短ルートで最新化（確認は後回し）
              └─ git status で差分が出た＆共有したい → 2) 親リポジトリに commit/push
 ```
 
@@ -174,10 +176,13 @@ git status
 「最新かどうかを丁寧に確認するより、まず更新してしまいたい」場合の最短です。
 
 ```powershell
+git submodule update --init --recursive
 git submodule update --remote cursor_rules
 git status
 ```
 
+- `git submodule update --init --recursive` は、clone 直後などで **サブモジュールの中身が未取得/未初期化**のときに必要です。
+  - これが無いと、`cursor_rules` フォルダが空のまま（または未初期化のまま）で、`--remote` がうまく動かない場合があります。
 - `git status` が `modified: cursor_rules (new commits)` なら：共有したい場合は 2)（commit/push）へ
 - 本当に `origin/main` 先端まで行けているか確実にしたい場合は、あとから 5-C で確認します
 
