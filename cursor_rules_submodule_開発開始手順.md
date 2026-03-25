@@ -8,6 +8,10 @@
 
 ```text
 開始（Cursorでプロジェクトを開いた）
+└─ Cursor の Rules に、cursor_rules の .mdc（6本）は登録済み？
+   ├─ いいえ（最初の1回だけ）
+   │  └─ 【最初の1回だけ】Rules登録（重要）を実施（本ページの「必要情報」参照）
+   └─ はい（以降は通常運用へ）
 └─ サブモジュール設定（.gitmodules と cursor_rules）がある？
    ├─ ない（初回だけ）
    │  └─ 1) サブモジュールを追加して GitHub に保存する
@@ -133,8 +137,15 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 
 - 雛形（共通リポジトリ側）：`cursor_rules/templates/vscode_tasks.tasks.json.example`
 - 使い方（プロジェクト側）：
-  1. プロジェクトの `.vscode/tasks.json` としてコピー
-  2. Cursor で `Run Task…` → `dev-start (cursor_rules submodule)` を実行
+  - **推奨（コピーしない）**：プロジェクト側の `.vscode/tasks.json` を、共通側ファイルへの **シンボリックリンク**にする
+    - リンク元（プロジェクト側）：`<プロジェクトルート>/.vscode/tasks.json`
+    - リンク先（共通側）：`<プロジェクトルート>/cursor_rules/templates/vscode_tasks.tasks.json.example`
+    - これなら “コピーが古くなる問題” を避けられる
+  - 代替（コピーする）：プロジェクトの `.vscode/tasks.json` としてコピー（最も簡単だが、共通更新が自動反映されない）
+
+> 注意：VS Code/Cursor の Task は、基本的に **ワークスペース（プロジェクト）側の `.vscode/tasks.json`** を見に行きます。共通リポジトリ側のファイルを “自動で探して” 使う仕組みはないため、**リンク**か**最小コピー**が現実解です。
+
+Task 実行：Cursor で `Run Task…` → `dev-start (cursor_rules submodule)` を実行
 
 ### 7) clone 直後など：サブモジュール（cursor_rules）の中身を「取得だけ」したい（更新はまだしない）
 

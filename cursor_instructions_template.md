@@ -7,8 +7,8 @@
 
 ## 目次
 
-- [0. セットアップ](#0-セットアッププロジェクト開始時に実行すること)
-- [1. cursor/rules の登録](#1-cursorrules-の登録)
+- [0. セットアップ（【人がやる】）](#0-セットアッププロジェクト開始時に実行すること)
+- [1. cursor/rules の登録（【人がやる】最初の1回）](#1-cursorrules-の登録)
 - [2. スクリプト作成 補足](#2-スクリプト作成-補足アプリごとに指定がある場合)
 - [3. Markdown 全般の共通ルール（全 .md に適用）](#3-markdown-文書の共通ルール全-md-に適用)
 - [4. README 作成・更新](#4-readme-作成更新)
@@ -25,6 +25,8 @@
 <a id="0-セットアッププロジェクト開始時に実行すること"></a>
 ## 0. セットアップ（プロジェクト開始時に実行すること）
 
+**【人がやる】** プロジェクト開始時に、作業PC上で準備する。
+
 以下を実施すること。
 
 - プロジェクトフォルダ直下に仮想環境（.venv）がなければ作成する。
@@ -36,6 +38,8 @@
 
 <a id="1-cursorrules-の登録"></a>
 ## 1. cursor/rules の登録
+
+**【人がやる】** このプロジェクトで最初の1回だけ、Cursor の Rules に `.mdc` を登録する（以降は不要）。
 
 **禁止:** 作業対象のプロジェクトフォルダの `.cursor/rules/` に次の 6 本の .mdc（venv-only-common.mdc, errors-debug-unittest-common.mdc, post-modification-common.mdc, gui-build-security-common.mdc, markdown-common.mdc, update-management-common.mdc）をコピー・配置しないこと。コピーすると共通リポジトリ（cursor_rules）でこれらを更新してもプロジェクトに反映されず、バージョン管理ができなくなる。
 
