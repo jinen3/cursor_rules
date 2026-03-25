@@ -1,102 +1,127 @@
-# cursor_rules サブモジュール：用語・運用・開発開始コマンド
+# cursor_rules サブモジュール：開発開始手順（初心者向け）
 
-## ① 用語（git subtree / CI で自動更新 PR）
-
-### git subtree とは
-
-別リポジトリの内容を、**親リポジトリのフォルダに「履歴ごと取り込む」**仕組みです。サブモジュールのように「特定コミットへのポインタ」ではなく、**コピーに近いがマージ履歴でつなぐ**イメージです。
-
-| | サブモジュール | git subtree |
-|--|----------------|-------------|
-| 中身の置き場 | 別リポジトリ（親はコミット ID のみ記録） | 親リポジトリのツリーに取り込む |
-| 更新 | `git submodule update --remote` 等 | `git subtree pull` 等（別手順） |
-| よくある用途 | 共通ライブラリを複数プロジェクトで共有 | ツールを1リポジトリに統合したいとき |
-
-あなたの運用（`cursor_rules` を複数プロジェクトで**同じリポジトリを参照**）では、**サブモジュールのまま**が一般的です。subtree は「別の選択肢」であり、**常に最新に追従する特別なスイッチがあるわけではありません**。
-
-### CI で自動更新 PR 作成とは
-
-**CI**（継続的インテグレーション：GitHub Actions など）で、定期的または `cursor_rules` 更新時に次を自動で行う運用です。
-
-1. 親リポジトリをクローンし、`git submodule update --remote cursor_rules` でサブモジュールを最新にする  
-2. 親リポジトリに「記録されるコミット ID の変更」が出るので、その差分を **Pull Request として自動作成**する  
-
-効果は「**常に自動で最新になる**」ではなく、「**最新への更新を人が忘れない／レビュー付きで取り込める**」ことです。親リポジトリに記録されるのは結局 **ある時点のコミット** のままです。
+この文書は「`cursor_rules` をサブモジュールで運用するとき」に、**何をどの順番で打てばよいか**を、なるべくやさしく説明します。
 
 ---
 
-## ② 「常に最新」について（再掲）
+## ① まず結論（サブモジュールは「常に最新」ではない）
 
-Git のサブモジュールに、**親を変えずに常に追跡ブランチの先端だけを指し続ける公式オプションはありません**。  
-実務では次のどちらかです。
+サブモジュールは、親リポジトリがサブモジュールを **ブランチではなく「特定のコミットID」**で記録します。
 
-- **手動・スクリプト:** `git submodule update --remote cursor_rules` を決まったタイミングで実行し、必要なら親リポジトリにその結果をコミットする  
-- **CI:** 上記を自動化し PR にする  
+- GitHub で `cursor_rules @ 3aff711` と表示される = 親リポジトリが「`cursor_rules` は **3aff711** を使う」と決めている
+
+そのため、**何もしないと固定のまま**です。必要なタイミングで「最新へ上げる」作業をします。
 
 ---
 
-## ②-2 コミットIDと「参照情報（ポインタ）」の違い（やさしい説明）
+## ② コミットIDと「参照情報（ポインタ）」の違い（やさしい説明）
 
-ここが一番つまずきやすいので、例えで説明します。
+### コミットIDとは（cursor_rules 側の番号）
 
-### まず「コミットID」とは
+`3aff711` のような文字列は、`cursor_rules` リポジトリの **ある時点のスナップショット番号**です。
 
-`3aff711` のような文字列（短いハッシュ）は、`cursor_rules` リポジトリの**ある時点のスナップショット番号**です。
+- **コミットID**: 「`cursor_rules` の状態を一意に表す番号」
 
-- **コミットID（例: 3aff711）**: 「`cursor_rules` の状態を一意に表す番号」
+### 参照情報（ポインタ）とは（親が覚えている“指し先”）
 
-### 次に「参照情報（ポインタ）」とは
-
-親リポジトリ（例: `py_tool_daily_report`）は、サブモジュールを「常に最新」ではなく、
+親リポジトリ（例: `py_tool_daily_report`）は、サブモジュールを
 **“cursor_rules はこのコミットIDを使う”** という情報で持ちます。
 
 - **参照情報（ポインタ）**: 「親が、サブモジュールとして **どのコミットIDの cursor_rules を使うか** を覚えている情報」
 
-イメージとしては次です。
+例え：
 
-- **コミットID** = 本の「版（第◯版）」や「ページ番号」のようなもの（`cursor_rules` 側の番号）
-- **ポインタ** = 付箋やしおりのようなもの（親が「この版を使う」と決めている）
-
-GitHub で `cursor_rules @ 3aff711` と見えるのは、
-「`cursor_rules` というサブモジュールは、いま親リポジトリとして **3aff711 を指している**」という意味です。
-
-### `git submodule update --remote cursor_rules` をすると何が変わる？
-
-このコマンドは、`cursor_rules` のリモート（たとえば `origin/main`）の先端を取りに行き、
-親が指しているコミットID（＝ポインタ）を、より新しいコミットに**付け替える**動きです。
-
-重要: これは「あなたのPCの親リポジトリの中で、ポインタが変わる」だけです。
-
-### なぜ commit / push が必要なの？
-
-`--remote` でポインタが付け替わると、親リポジトリから見ると次のような「変更」になります。
-
-- 変更前: 親は `cursor_rules @ 3aff711` を指していた
-- 変更後: 親は `cursor_rules @ XXXXXXX`（もっと新しいID）を指すようになった
-
-この「どのコミットIDを使うか」という情報は、親リポジトリの履歴の一部です。だから、
-
-1. `git status`（変更が出ているか確認）
-2. `git add cursor_rules`（“ポインタの付け替え” をステージ）
-3. `git commit`（この付け替えを履歴として確定）
-4. `git push`（GitHub に共有）
-
-までやって初めて、**他の人／別PCが clone したときも同じコミットIDを指す**状態になります。
-
-逆に言うと、あなたのPCで `--remote` しただけだと、GitHub 上の親リポジトリは古いままなので、
-他の人が clone しても「あなたが更新した最新版」にはなりません（親がまだ古いコミットIDを指しているため）。
+- **コミットID** = 本の「版（第◯版）」や「ページ番号」（`cursor_rules` 側の番号）
+- **ポインタ** = しおり（親が「この版を使う」と決めている）
 
 ---
 
-## ③ 開発開始コマンド1本（PowerShell）
+## ③ `git submodule update --remote cursor_rules` で「最新にする」とは？
+
+これは一言でいうと、
+
+> 親リポジトリが指している `cursor_rules` のコミットID（ポインタ）を、より新しいコミットに **付け替える**こと
+
+です。
+
+### `git submodule add` の時点で親が覚えているもの
+
+親リポジトリは、サブモジュールを **“ブランチ” ではなく “特定のコミットID”** で記録します。
+
+- GitHub の表示 `cursor_rules @ 3aff711` = 「親が 3aff711 を指している」
+
+### `git submodule update --remote cursor_rules` がやること
+
+サブモジュール `cursor_rules` の **追跡ブランチ（通常は `origin/main`）** の先端コミットを取りに行き、
+親が指すコミットID（= ポインタ）を **より新しいコミット** に更新します。
+
+つまり、**親リポジトリが参照する `cursor_rules` の内容を、リモート最新に近い状態へ更新する**ということです。
+
+重要：これはまず **あなたのPC上**で起きる変更です。GitHub 上の親リポジトリには自動反映されません。
+
+---
+
+## ④ 「最新にした状態」を他人/別PCに共有する（重要：手順1〜4）
+
+`git submodule update --remote cursor_rules` を実行すると、親リポジトリ側では
+「`cursor_rules` の参照先コミットが変わった」という差分になります。
+
+そのため、共有したい場合は **親リポジトリで commit/push が必要**です。
+
+### 1) `git status`（何が変わったか見る）
+
+親リポジトリのルートで `git status` を見ると、だいたいこんな表示になります。
+
+```text
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   cursor_rules (new commits)
+```
+
+`modified: cursor_rules (new commits)` は、
+「`cursor_rules` の**中身ファイルが編集された**というより、親が指してる**コミットID（ポインタ）が変わった**」
+という意味です。
+
+### 2) `git add cursor_rules`（“参照先コミットが変わった”をステージする）
+
+`git add cursor_rules` は、`cursor_rules` フォルダの中身を親にコピーするのではなく、
+親リポジトリにある **参照先コミットIDの変更（ポインタの付け替え）** を「コミット対象」に乗せます。
+
+### 3) `git commit -m "..."`（参照先コミットの更新を確定）
+
+これで親リポジトリの履歴に、
+
+> 「cursor_rules の参照先を新しいコミットに更新した」
+
+という記録が残ります。
+
+### 4) `git push`（GitHub に送る＝他人/別PCと共有）
+
+push して初めて GitHub 上の親リポジトリも更新され、他人や別PCが clone したときに
+
+- **同じ新しいコミットを参照する `cursor_rules`**
+
+を再現できます。
+
+### よくある誤解
+
+- 誤解: `git submodule update --remote` したから、GitHub の親リポジトリも自動で最新参照になる  
+  実際: それは **あなたのPCだけ**。共有したいなら **親で commit/push** が必要
+- 誤解: `git add cursor_rules` は `cursor_rules` の中身を親に取り込む  
+  実際: 親が記録するのは基本的に **“サブモジュールが指すコミットID（ポインタ）”** だけ
+
+---
+
+## ⑤ よく使う「開発開始コマンド1本」（PowerShell）
 
 共通リポジトリ（cursor_rules）に同梱のスクリプトを使うか、内容をプロジェクト側にコピーして使います。
 
-**配置例（サブモジュール利用時）:**
+### 配置例（サブモジュール利用時）
 
 `your_project/cursor_rules/scripts/dev-start-cursor-rules.ps1`
 
-**実行例（親リポジトリのルートで）:**
+### 実行例（親リポジトリのルートで）
 
 ```powershell
 cd D:\pyscript\tool\py_tool_daily_report
@@ -109,7 +134,7 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
   - `git submodule update --init --recursive`（未取得/未初期化のサブモジュールを取る）
   - `git submodule update --remote cursor_rules`（必要なら共通をリモート最新に近づける。親に差分が出る場合あり）
 
-**リモート最新まで上げず、取得だけ（clone 直後など）:**
+### リモート最新まで上げず、取得だけ（clone 直後など）
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -SkipRemote
@@ -117,7 +142,7 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 
 - `-SkipRemote`: `--remote` 更新を**行わない**オプションです。まずは「サブモジュールの中身を取るだけ」にしたい場合（clone 直後、まず動作確認したい場合）に使います。
 
-**別パスを明示:**
+### 別パスを明示
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -ProjectRoot "D:\pyscript\tool\py_tool_daily_report"
@@ -129,7 +154,7 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 
 ---
 
-## Pattern ①：サブモジュール未設定のリモートを clone → 手元で `submodule add` して開発
+## ⑥ Pattern ①：サブモジュール未設定のリモートを clone → 手元で `submodule add` して開発
 
 **前提:** リモートに `.gitmodules` がまだない。
 
@@ -169,7 +194,7 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 
 ---
 
-## Pattern ②：サブモジュール設定済みリポジトリを clone し直す
+## ⑦ Pattern ②：サブモジュール設定済みリポジトリを clone し直す
 
 **前提:** リモートに `.gitmodules` と `cursor_rules` の登録済み。
 
