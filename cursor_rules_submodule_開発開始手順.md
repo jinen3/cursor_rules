@@ -53,6 +53,20 @@
 
 前提：プロジェクト（親リポジトリ）は **Cursor の機能で clone 済み**で、いまそのプロジェクトフォルダを Cursor で開いているものとします。
 
+### 【最初の1回だけ】Rules登録（重要）
+
+`cursor_rules` をサブモジュールとして置いただけでは、Cursor が `.mdc` を勝手にルール登録してくれるわけではありません。**最初の1回だけ**、Cursor の Rules に次の 6 本を登録します（すべて `alwaysApply: true`）。
+
+- 登録元（サブモジュール内）：`<プロジェクトルート>/cursor_rules/.cursor/rules/`
+  - `venv-only-common.mdc`
+  - `errors-debug-unittest-common.mdc`
+  - `post-modification-common.mdc`
+  - `gui-build-security-common.mdc`
+  - `markdown-common.mdc`
+  - `update-management-common.mdc`
+
+この「最初の1回」が終われば、以降はこの文書の 2)（おすすめフロー）で共通認識を維持できる。
+
 ### 1) 最初の1回だけ：サブモジュールを追加して GitHub に保存する
 
 親リポジトリのルートで実行します。**注意：親リポジトリのルート直下に `cursor_rules` という名前の通常フォルダが既にあると失敗**します。
@@ -112,6 +126,15 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 補足：
 - このスクリプトは **`git status` 自体は実行しません**（最後に「git status で確認してね」と表示するだけです）。
 - コマンドで確認したい場合は、実行後に `git status` を打ってもOKです。
+
+#### （参考）クリック運用：Run Task… で「開発開始」を実行する
+
+「ターミナルでコマンドを打たない」運用に寄せたい場合は、プロジェクト側に `.vscode/tasks.json` を置いて Task 化できる。
+
+- 雛形（共通リポジトリ側）：`cursor_rules/templates/vscode_tasks.tasks.json.example`
+- 使い方（プロジェクト側）：
+  1. プロジェクトの `.vscode/tasks.json` としてコピー
+  2. Cursor で `Run Task…` → `dev-start (cursor_rules submodule)` を実行
 
 ### 7) clone 直後など：サブモジュール（cursor_rules）の中身を「取得だけ」したい（更新はまだしない）
 
