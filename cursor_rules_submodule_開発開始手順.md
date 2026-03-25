@@ -17,6 +17,17 @@
          ├─ いいえ（最初の1回だけ）
          │  └─ 【最初の1回だけ】Rules登録（重要）を実施（本ページの「必要情報」参照）
          └─ はい（以降は通常運用へ）
+      ├─ クリック運用（Run Task…）で「開発開始」を実行したい？
+      │  ├─ はい（最初の1回だけ）
+      │  │  ├─ `.vscode/tasks.json` を用意して Task 化する
+      │  │  │  ├─ 推奨（コピーしない）: `.vscode/tasks.json` を共通側ファイルへのシンボリックリンクにする
+      │  │  │  │  ├─ リンク元: `<プロジェクトルート>/.vscode/tasks.json`
+      │  │  │  │  └─ リンク先: `<プロジェクトルート>/cursor_rules/templates/vscode_tasks.tasks.json.example`
+      │  │  │  ├─ リンク作成: `powershell ... setup-tasks-link.ps1`
+      │  │  │  └─ 代替（コピー）: `.vscode/tasks.json` をコピー（※ 共通更新は自動反映されない）
+      │  │  │     └─ 目印: `.vscode/tasks_copy.txt` があれば「コピー運用」だと一目で分かる
+      │  │  └─ Task 実行: Cursor で `Run Task…` → `dev-start (cursor_rules submodule)`
+      │  └─ いいえ（ターミナル運用）→ そのまま次へ
       ├─ 【リモートリポジトリ（親GitHub）の更新まで含めたい】＝他人/別PCにも反映したい
       │  └─ サブモジュールの参照先（ポインタ）を「cursor_rules のリモート最新（origin/main 先端）」に更新して共有したい？
       │     ├─ いいえ → OK（ここでは何もしない）
@@ -148,6 +159,8 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 ```
 
   - 代替（コピーする）：プロジェクトの `.vscode/tasks.json` としてコピー（最も簡単だが、共通更新が自動反映されない）
+    - **重要**：VS Code/Cursor は、基本的に **プロジェクト側のファイル名が `tasks.json` である必要**があるため、`tasks.json_copy.json` のように「名前を変えて区別する」方式は基本NGです
+    - **代替時の目印**：`setup-tasks-link.ps1` が「コピーで代替」した場合は、`.vscode/tasks_copy.txt` を自動作成します（コピー運用だと一目で分かる）
 
 > 注意：VS Code/Cursor の Task は、基本的に **ワークスペース（プロジェクト）側の `.vscode/tasks.json`** を見に行きます。共通リポジトリ側のファイルを “自動で探して” 使う仕組みはないため、**リンク**か**最小コピー**が現実解です。
 
