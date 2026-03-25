@@ -137,6 +137,16 @@ git push
 
 ### 2) ふだん毎回：開発を始めるとき（サブモジュール取得＋必要なら更新）
 
+**dev-start を実行する目的（何のため？）**
+
+- **目的**：作業開始前に、プロジェクト内の `cursor_rules` サブモジュールを「使える状態にする」＋（必要なら）`cursor_rules` をリモート最新へ更新して、**共通ルール/スクリプト/テンプレ**を最新に揃えるため
+- **やること（中で実行していること）**：
+  - `git submodule update --init --recursive`（サブモジュールの中身を取得して、空/未初期化を解消）
+  - `git submodule update --remote cursor_rules`（必要なら `cursor_rules` をリモート最新へ更新）
+- **実行後どうなる？**：
+  - `cursor_rules` の中身（`.cursor/rules` や `scripts` や `templates`）が最新になり、毎回の作業を始めやすくなる
+  - もし親リポジトリ側に `cursor_rules (new commits)` が出たら、それは「親が記録する参照先（ポインタ）が動いた」サインなので、**共有したいなら 6)（commit/push）**で公開する
+
 親リポジトリのルートで、次を **1回実行**します。
 
 ```powershell
