@@ -39,7 +39,9 @@
       │  │  │  │     `powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1`
       │  │  │  └─ 代替（コピー）: `.vscode/tasks.json` をコピー（※ 共通更新は自動反映されない）
       │  │  │     └─ 目印: `.vscode/tasks_copy.txt` があれば「コピー運用」だと一目で分かる
-      │  │  └─ Task 実行: Cursor で `Run Task…` → `dev-start (cursor_rules submodule)`
+      │  │  └─ Task 実行（クリック）:
+      │  │     ├─ メニュー: `ターミナル(T)` → `タスクの実行…`
+      │  │     └─ 一覧から `dev-start (cursor_rules submodule)` を選ぶ
       │  └─ いいえ（ターミナル運用）→ そのまま次へ
       ├─ 【リモートリポジトリ（親GitHub）の更新まで含めたい】＝他人/別PCにも反映したい
       │  └─ サブモジュールの参照先（ポインタ）を「cursor_rules のリモート最新（origin/main 先端）」に更新して共有したい？
@@ -177,7 +179,12 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 
 > 注意：VS Code/Cursor の Task は、基本的に **ワークスペース（プロジェクト）側の `.vscode/tasks.json`** を見に行きます。共通リポジトリ側のファイルを “自動で探して” 使う仕組みはないため、**リンク**か**最小コピー**が現実解です。
 
-Task 実行：Cursor で `Run Task…` → `dev-start (cursor_rules submodule)` を実行
+Task 実行（クリック）：
+
+- メニューから実行する（画像の場所）
+  - `ターミナル(T)` → `タスクの実行…` → `dev-start (cursor_rules submodule)` を選ぶ
+- コマンドパレットから実行する（覚えやすい）
+  - `Ctrl+Shift+P` → `Tasks: Run Task`（日本語UIだと「タスク: タスクの実行」等）→ `dev-start (cursor_rules submodule)` を選ぶ
 
 ### 7) clone 直後など：サブモジュール（cursor_rules）の中身を「取得だけ」したい（更新はまだしない）
 
