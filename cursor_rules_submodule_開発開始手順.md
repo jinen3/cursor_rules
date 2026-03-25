@@ -300,7 +300,7 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
   - **自分だけで使う**なら、そのまま作業してOK  
   - **他人/別PCにも同じ状態にしたい**なら、④の手順どおりに `git add cursor_rules` → `git commit` → `git push` します
 
-### リモート最新まで上げず、サブモジュール（cursor_rules）の中身を取得だけ（clone 直後など）
+### 「最新に更新」せずに、サブモジュール（cursor_rules）の中身だけ取得する（clone 直後など）
 
 ### 【質問3】「（サブモジュールの中身を）取得だけ」ってどういうこと？
 
