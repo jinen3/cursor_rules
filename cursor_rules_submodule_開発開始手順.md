@@ -2,27 +2,11 @@
 
 ---
 
-## 前半：やること（最短手順だけ）
+## 必要情報：まずやること（最短手順）
 
-### A. ふだん毎回（開発を始めるとき）
+前提：プロジェクト（親リポジトリ）は **Cursor の機能で clone 済み**で、いまそのプロジェクトフォルダを Cursor で開いているものとします。
 
-親リポジトリのルートで、次を **1回実行**します。
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1
-```
-
-- 結果を確認：`git status`
-  - `nothing to commit, working tree clean` → OK（共有作業なし）
-  - `modified: cursor_rules (new commits)` → 共有したいなら「D」へ
-
-### B. clone 直後（まず “取得だけ” にしたい）
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -SkipRemote
-```
-
-### C. 最初の1回だけ（このプロジェクトにサブモジュール設定が無いとき）
+### 1) 最初の1回だけ：サブモジュールを追加して GitHub に保存する
 
 親リポジトリのルートで実行します。**注意：親リポジトリのルート直下に `cursor_rules` という名前の通常フォルダが既にあると失敗**します。
 
@@ -33,7 +17,9 @@ git commit -m "Add cursor_rules submodule"
 git push
 ```
 
-### D. 共有したい更新が出たとき（他人/別PCにも反映）
+これで以降、他PCで `--recurse-submodules` 付き clone ができるようになります（サブモジュール設定が GitHub に保存された状態）。
+
+### 2) 共有したい更新が出たとき：親リポジトリに commit/push する（他人/別PCにも反映）
 
 ```powershell
 git status
@@ -42,9 +28,27 @@ git commit -m "Update cursor_rules submodule pointer"
 git push
 ```
 
+### 3) ふだん毎回：開発を始めるとき（サブモジュール取得＋必要なら更新）
+
+親リポジトリのルートで、次を **1回実行**します。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1
+```
+
+- 結果を確認：`git status`
+  - `nothing to commit, working tree clean` → OK（共有作業なし）
+  - `modified: cursor_rules (new commits)` → 共有したいなら「2)」へ
+
+### 4) clone 直後など：まず “取得だけ” にしたい（更新はまだしない）
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1 -SkipRemote
+```
+
 ---
 
-## 後半：解説（やさしい説明）
+## 参考情報：解説（やさしい説明）
 
 ---
 
