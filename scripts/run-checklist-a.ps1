@@ -279,6 +279,11 @@ if ($checkFlags.enforceRequirementMap) {
       }
     }
   }
+  foreach ($rid in $manualRequirementIds) {
+    if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
+      [void]$coveredReqIds.Add([string]$rid)
+    }
+  }
   foreach ($rid in $allReqIds) {
     if (-not $coveredReqIds.Contains($rid)) {
       Fail ("Requirement coverage gap: " + $rid)
