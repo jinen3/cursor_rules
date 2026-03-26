@@ -30,6 +30,16 @@ alwaysApply: true
 - **`mdc` 更新時は `spec` 同時更新を必須化：** 6本の `.mdc` のどれかを変更したら、**必ず** `cursor_rules/scripts/sync-checklist-a-spec.ps1` を実行して `spec/checklist_a_requirements.json` を更新する。`spec` は「6本 `.mdc` の全内容（正規化後）」のハッシュを保持する。**更新しないまま commit/push することは禁止**。
 - **判定の基準（抜け漏れ防止）：** `run: checklist A (all rules)` は 6本 `.mdc` それぞれについて「正規化済み全内容の SHA-256」を `spec/checklist_a_requirements.json` と照合する。一致しない場合は **FAIL（mdc changed but spec not synced）** として作業完了不可。
 
+## Checklist A 固定運用（再現用）
+
+- 以下を固定運用とする。毎回この順序で実施すること。
+  1. Cursor が `run: checklist A (all rules)` を実行する。
+  2. 自動チェック結果を Cursor が報告する。
+  3. `manualRequirementIds` に該当する項目だけ、人（ユーザー）に確認を依頼する。
+  4. 人の確認後、Cursor が `run: checklist A (manual review done)` を実行する。
+  5. Cursor が最終 PASS を確認して完了報告する。
+- 人が必要な確認は `manualRequirementIds` と `manualCheckGuidance` を唯一の正として扱う。
+
 ## Checklist A 実行定義（機械可読・厳守）
 
 - 下の JSON は `run-checklist-a.ps1` が直接読み込む実行定義。
@@ -67,6 +77,13 @@ alwaysApply: true
     "enforceRequirementClassification": true,
     "requireTestEnvironment": true
   },
+  "standardWorkflow": [
+    "agent_run_all_rules",
+    "agent_report_auto_result",
+    "request_human_review_for_manual_ids",
+    "agent_run_manual_review_done",
+    "agent_report_final_pass"
+  ],
   "coverageTargets": [
     "venv-only-common.mdc",
     "errors-debug-unittest-common.mdc",
@@ -107,7 +124,7 @@ alwaysApply: true
     "sec.use_safe_runtime_context"
   ],
   "manualCheckGuidance": {
-    "sec.use_safe_runtime_context": "起動設定で 0.0.0.0 を使わず、localhost または 192.168.x.x だけになっていることを確認する。"
+    "sec.use_safe_runtime_context": "Confirm bind host is localhost or 192.168.x.x, and never 0.0.0.0."
   },
   "runtimeChecks": [
     {

@@ -10,6 +10,11 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+try {
+  [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+  $OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+} catch {
+}
 
 $script:LastFailureMessage = ""
 

@@ -17,6 +17,11 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+try {
+  [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+  $OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+} catch {
+}
 
 $RE_TOC_LINK = '\[[^\]]+\]\(#([A-Za-z0-9-]+)\)'
 $RE_HTML_ANCHOR_LINE = '^\s*<a\s+id="([A-Za-z0-9-]+)"></a>\s*$'
