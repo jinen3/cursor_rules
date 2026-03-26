@@ -62,7 +62,8 @@ alwaysApply: true
     "runMarkdownTocFixAndCheck": true,
     "runUnitTestsWhenAvailable": true,
     "enforceCoverageMap": true,
-    "enforceRequirementMap": true
+    "enforceRequirementMap": true,
+    "enforceRequirementClassification": true
   },
   "coverageTargets": [
     "venv-only-common.mdc",
@@ -100,6 +101,9 @@ alwaysApply: true
       "upd.checklist_no_skiptests"
     ]
   },
+  "manualRequirementIds": [
+    "sec.use_safe_runtime_context"
+  ],
   "runtimeChecks": [
     {
       "id": "venv-python-prefix",
@@ -178,7 +182,7 @@ alwaysApply: true
       "type": "project_no_open_bind",
       "requiredWhen": "always",
       "covers": ["gui-build-security-common.mdc"],
-      "coversReqs": ["sec.no_open_bind_0_0_0_0", "sec.use_safe_runtime_context"]
+      "coversReqs": ["sec.no_open_bind_0_0_0_0"]
     },
     {
       "id": "project-tasks-use-cursor-rules-scripts",

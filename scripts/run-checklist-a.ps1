@@ -136,6 +136,10 @@ $requirementIdsMap = $null
 if ($policy.PSObject.Properties.Name -contains "requirementIds") {
   $requirementIdsMap = $policy.requirementIds
 }
+$manualRequirementIds = @()
+if ($policy.PSObject.Properties.Name -contains "manualRequirementIds") {
+  $manualRequirementIds = @($policy.manualRequirementIds)
+}
 $runtimeChecks = @()
 if ($policy.PSObject.Properties.Name -contains "runtimeChecks") {
   foreach ($rc in @($policy.runtimeChecks)) {
@@ -153,6 +157,7 @@ if ($requiredScripts.Count -eq 0) { Fail "Policy requiredScripts is empty" }
 if ($requiredTaskLabels.Count -eq 0) { Fail "Policy requiredTaskLabels is empty" }
 if ($checkFlags.enforceCoverageMap -and $coverageTargets.Count -eq 0) { Fail "Policy coverageTargets is empty" }
 if ($checkFlags.enforceRequirementMap -and $null -eq $requirementIdsMap) { Fail "Policy requirementIds is missing" }
+if ($checkFlags.enforceRequirementClassification -and $null -eq $requirementIdsMap) { Fail "Policy requirementIds is missing" }
 
 Step "Check required 6 mdc files"
 foreach ($name in $requiredMdc) {
@@ -279,6 +284,50 @@ if ($checkFlags.enforceRequirementMap) {
       Fail ("Requirement coverage gap: " + $rid)
     }
     Write-Host ("OK requirement: " + $rid)
+  }
+}
+
+if ($checkFlags.enforceRequirementClassification) {
+  Step "Check requirement classification (auto vs manual)"
+  $allReqIds = New-Object System.Collections.Generic.HashSet[string]
+  foreach ($mdcName in $requirementIdsMap.PSObject.Properties.Name) {
+    foreach ($rid in @($requirementIdsMap.$mdcName)) {
+      if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
+        [void]$allReqIds.Add([string]$rid)
+      }
+    }
+  }
+  $autoReqIds = New-Object System.Collections.Generic.HashSet[string]
+  foreach ($rc in $runtimeChecks) {
+    if ($rc.PSObject.Properties.Name -contains "coversReqs") {
+      foreach ($rid in @($rc.coversReqs)) {
+        if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
+          [void]$autoReqIds.Add([string]$rid)
+        }
+      }
+    }
+  }
+  $manualReqIds = New-Object System.Collections.Generic.HashSet[string]
+  foreach ($rid in $manualRequirementIds) {
+    if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
+      [void]$manualReqIds.Add([string]$rid)
+    }
+  }
+
+  foreach ($rid in $allReqIds) {
+    $isAuto = $autoReqIds.Contains($rid)
+    $isManual = $manualReqIds.Contains($rid)
+    if (-not ($isAuto -or $isManual)) {
+      Fail ("Requirement classification gap: " + $rid)
+    }
+    if ($isAuto -and $isManual) {
+      Fail ("Requirement classified as both auto/manual: " + $rid)
+    }
+    if ($isManual) {
+      Write-Host ("OK requirement(manual): " + $rid)
+    } else {
+      Write-Host ("OK requirement(auto): " + $rid)
+    }
   }
 }
 
