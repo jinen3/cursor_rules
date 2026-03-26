@@ -406,10 +406,10 @@ if ($runtimeChecks.Count -gt 0) {
         }
         $textbookFiles = Get-ChildItem -LiteralPath $root -File -Filter "textbook_*_project.md" -ErrorAction SilentlyContinue
         $legacyStudyFiles = @(
-          Join-Path $root "01_overview.md",
-          Join-Path $root "02_error_handling.md",
-          Join-Path $root "03_detailed_guide.md",
-          Join-Path $root "DEBUG_GUIDE.md"
+          (Join-Path $root "01_overview.md"),
+          (Join-Path $root "02_error_handling.md"),
+          (Join-Path $root "03_detailed_guide.md"),
+          (Join-Path $root "DEBUG_GUIDE.md")
         )
         $hasLegacyStudy = $false
         foreach ($p in $legacyStudyFiles) {
