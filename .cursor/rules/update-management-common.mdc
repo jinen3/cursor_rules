@@ -91,6 +91,11 @@ alwaysApply: true
       "requiredWhen": "always"
     },
     {
+      "id": "cursor-rules-submodule-at-origin-main",
+      "type": "submodule_at_origin_main",
+      "requiredWhen": "always"
+    },
+    {
       "id": "no-copied-common-mdc-in-project",
       "type": "no_project_rule_copies",
       "requiredWhen": "always"

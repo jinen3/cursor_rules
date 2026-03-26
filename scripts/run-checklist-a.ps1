@@ -316,6 +316,24 @@ if ($runtimeChecks.Count -gt 0) {
         }
         Write-Host ("OK runtime: " + $id)
       }
+      "submodule_at_origin_main" {
+        $head = (git -C $cursorRules rev-parse HEAD).Trim()
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($head)) {
+          Fail ("runtime check failed: " + $id + " (cannot read submodule HEAD)")
+        }
+        git -C $cursorRules fetch origin main --quiet
+        if ($LASTEXITCODE -ne 0) {
+          Fail ("runtime check failed: " + $id + " (cannot fetch origin/main)")
+        }
+        $originHead = (git -C $cursorRules rev-parse origin/main).Trim()
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($originHead)) {
+          Fail ("runtime check failed: " + $id + " (cannot read origin/main)")
+        }
+        if ($head -ne $originHead) {
+          Fail ("runtime check failed: " + $id + " (submodule is not at origin/main HEAD)")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
       "no_project_rule_copies" {
         $projectRulesDir = Join-Path $root ".cursor\\rules"
         if (Test-Path -LiteralPath $projectRulesDir) {
