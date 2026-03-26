@@ -114,6 +114,26 @@
       }
     },
     {
+      "label": "run: checklist A (manual review done)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\\\cursor_rules\\\\scripts\\\\run-checklist-a.ps1",
+        "-ProjectRoot",
+        "${workspaceFolder}",
+        "-ManualReviewOk"
+      ],
+      "problemMatcher": [],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
       "label": "sync: checklist A spec (mdc -> spec)",
       "type": "shell",
       "command": "powershell",

@@ -53,6 +53,7 @@ alwaysApply: true
   ],
   "requiredTaskLabels": [
     "run: checklist A (all rules)",
+    "run: checklist A (manual review done)",
     "sync: checklist A spec (mdc -> spec)",
     "check: markdown toc (project)",
     "fix: markdown toc (project)"
