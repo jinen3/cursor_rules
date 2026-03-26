@@ -54,6 +54,26 @@
         "reveal": "always",
         "panel": "shared"
       }
+    },
+    {
+      "label": "fix: markdown toc (project)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\\\cursor_rules\\\\scripts\\\\check-markdown-toc.ps1",
+        "-RootPath",
+        "${workspaceFolder}",
+        "-Fix"
+      ],
+      "problemMatcher": [],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
     }
   ]
 }

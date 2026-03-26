@@ -3,6 +3,9 @@ param(
   [string]$RootPath = ".",
 
   [Parameter(Mandatory = $false)]
+  [switch]$Fix,
+
+  [Parameter(Mandatory = $false)]
   [string[]]$ExcludeDirNames = @(
     ".git",
     ".venv",
@@ -14,6 +17,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+$RE_TOC_LINK = '\[[^\]]+\]\(#([A-Za-z0-9-]+)\)'
+$RE_HTML_ANCHOR_LINE = '^\s*<a\s+id="([A-Za-z0-9-]+)"></a>\s*$'
 
 function Resolve-AbsPath([string]$path) {
   return (Resolve-Path -LiteralPath $path).Path
@@ -48,10 +54,80 @@ function Has-TocSection([string[]]$lines) {
   return $false
 }
 
+function Has-AnyHtmlAnchor([string[]]$lines) {
+  foreach ($line in $lines) {
+    if ($line -match $RE_HTML_ANCHOR_LINE) {
+      return $true
+    }
+  }
+  return $false
+}
+
+function Get-HeadingIndices([string[]]$lines) {
+  $idx = @()
+  for ($i = 0; $i -lt $lines.Length; $i++) {
+    if ($lines[$i] -match '^\s{0,3}#{1,6}\s+\S') {
+      $idx += $i
+    }
+  }
+  return $idx
+}
+
+function Build-TocAndAnchors([string[]]$lines) {
+  $headingIdx = Get-HeadingIndices $lines
+  if ($headingIdx.Count -le 1) {
+    return $lines
+  }
+
+  $tocLinks = New-Object System.Collections.Generic.List[string]
+  $injected = New-Object System.Collections.Generic.List[string]
+
+  $sec = 0
+  for ($j = 0; $j -lt $lines.Length; $j++) {
+    $line = $lines[$j]
+    if ($line -match '^\s{0,3}#{1,6}\s+\S') {
+      $sec++
+      $anchor = "sec" + $sec
+      $title = ($line -replace '^\s{0,3}#{1,6}\s+', '').Trim()
+      $tocLinks.Add("- [$title](#$anchor)") | Out-Null
+      $injected.Add("<a id=""$anchor""></a>") | Out-Null
+      $injected.Add($line) | Out-Null
+    } else {
+      $injected.Add($line) | Out-Null
+    }
+  }
+
+  $header = New-Object System.Collections.Generic.List[string]
+  $header.Add("## 目次") | Out-Null
+  $header.Add("") | Out-Null
+  foreach ($t in $tocLinks) { $header.Add($t) | Out-Null }
+  $header.Add("") | Out-Null
+  $header.Add("> To jump TOC links, install **Markdown Preview Enhanced** and open preview (Ctrl+Alt+M or right-click 'Open Preview').") | Out-Null
+  $header.Add("") | Out-Null
+
+  $start = 0
+  if ($lines.Length -gt 0 -and $lines[0] -match '^\s*#\s+\S') {
+    $start = 1
+    if ($lines.Length -gt 1 -and $lines[1].Trim() -eq "") { $start = 2 }
+  }
+
+  $result = New-Object System.Collections.Generic.List[string]
+  for ($k = 0; $k -lt $injected.Count; $k++) {
+    if ($k -eq $start) {
+      foreach ($h in $header) { $result.Add($h) | Out-Null }
+    }
+    $result.Add($injected[$k]) | Out-Null
+  }
+  if ($start -ge $injected.Count) {
+    foreach ($h in $header) { $result.Add($h) | Out-Null }
+  }
+  return $result.ToArray()
+}
+
 function Get-TocLinkAnchors([string[]]$lines) {
   $anchors = New-Object System.Collections.Generic.HashSet[string]
   foreach ($line in $lines) {
-    $matches = [Regex]::Matches($line, '\[[^\]]+\]\(#([A-Za-z0-9\-]+)\)')
+    $matches = [Regex]::Matches($line, $RE_TOC_LINK)
     foreach ($m in $matches) {
       $anchors.Add($m.Groups[1].Value) | Out-Null
     }
@@ -62,7 +138,7 @@ function Get-TocLinkAnchors([string[]]$lines) {
 function Get-HtmlAnchors([string[]]$lines) {
   $anchors = New-Object System.Collections.Generic.HashSet[string]
   foreach ($line in $lines) {
-    $m = [Regex]::Match($line, '^\s*<a\s+id="([A-Za-z0-9\-]+)"></a>\s*$')
+    $m = [Regex]::Match($line, $RE_HTML_ANCHOR_LINE)
     if ($m.Success) {
       $anchors.Add($m.Groups[1].Value) | Out-Null
     }
@@ -79,6 +155,7 @@ $mdFiles = Get-ChildItem -LiteralPath $root -Recurse -File -Filter "*.md" | Wher
 }
 
 $problems = New-Object System.Collections.Generic.List[string]
+$fixed = 0
 
 foreach ($f in $mdFiles) {
   $content = Get-Content -LiteralPath $f.FullName -ErrorAction Stop
@@ -88,6 +165,14 @@ foreach ($f in $mdFiles) {
   }
 
   if (-not (Has-TocSection $content)) {
+    if ($Fix -and -not (Has-AnyHtmlAnchor $content)) {
+      $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
+      Copy-Item -LiteralPath $f.FullName -Destination ($f.FullName + ".bak." + $stamp) -Force
+      $newContent = Build-TocAndAnchors $content
+      [System.IO.File]::WriteAllText($f.FullName, ($newContent -join "`r`n") + "`r`n", [System.Text.Encoding]::UTF8)
+      $fixed++
+      continue
+    }
     $problems.Add("[NO_TOC] " + $f.FullName) | Out-Null
     continue
   }
@@ -118,6 +203,10 @@ if ($problems.Count -gt 0) {
 }
 
 Write-Host ""
-Write-Host ("OK: " + $mdFiles.Count + " markdown files checked.")
+if ($Fix) {
+  Write-Host ("OK: " + $mdFiles.Count + " markdown files checked. Fixed: " + $fixed)
+} else {
+  Write-Host ("OK: " + $mdFiles.Count + " markdown files checked.")
+}
 exit 0
 
