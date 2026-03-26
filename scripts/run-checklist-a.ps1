@@ -320,6 +320,28 @@ if ($runtimeChecks.Count -gt 0) {
         }
         Write-Host ("OK runtime: " + $id)
       }
+      "sync_spec_script_runs" {
+        $syncScript = Join-Path $cursorRules "scripts\\sync-checklist-a-spec.ps1"
+        if (-not (Test-Path -LiteralPath $syncScript)) {
+          Fail ("runtime check failed: " + $id + " (sync script missing)")
+        }
+        powershell -NoProfile -ExecutionPolicy Bypass -File $syncScript -RootPath $cursorRules | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+          Fail ("runtime check failed: " + $id + " (sync script execution failed)")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
+      "toc_check_script_runs" {
+        $tocScript = Join-Path $cursorRules "scripts\\check-markdown-toc.ps1"
+        if (-not (Test-Path -LiteralPath $tocScript)) {
+          Fail ("runtime check failed: " + $id + " (TOC script missing)")
+        }
+        powershell -NoProfile -ExecutionPolicy Bypass -File $tocScript -RootPath $root | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+          Fail ("runtime check failed: " + $id + " (TOC check script failed)")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
       "project_tasks_use_cursor_rules_scripts" {
         if (-not (Test-Path -LiteralPath $projectTasksPath)) {
           Fail ("runtime check failed: " + $id + " (.vscode/tasks.json missing)")

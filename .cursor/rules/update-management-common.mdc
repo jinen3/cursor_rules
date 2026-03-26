@@ -91,6 +91,16 @@ alwaysApply: true
       "requiredWhen": "always"
     },
     {
+      "id": "sync-spec-script-runs",
+      "type": "sync_spec_script_runs",
+      "requiredWhen": "always"
+    },
+    {
+      "id": "toc-check-script-runs",
+      "type": "toc_check_script_runs",
+      "requiredWhen": "always"
+    },
+    {
       "id": "project-tasks-use-cursor-rules-scripts",
       "type": "project_tasks_use_cursor_rules_scripts",
       "requiredWhen": "always"
