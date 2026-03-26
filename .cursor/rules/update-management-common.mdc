@@ -123,6 +123,7 @@ alwaysApply: true
   "manualRequirementIds": [
     "sec.use_safe_runtime_context"
   ],
+  "manualReviewScope": "web_only",
   "manualCheckGuidance": {
     "sec.use_safe_runtime_context": "Confirm bind host is localhost or 192.168.x.x, and never 0.0.0.0."
   },

@@ -99,6 +99,42 @@ function Invoke-InProject([string]$projectRoot, [scriptblock]$action) {
   }
 }
 
+function Test-IsWebProject([string]$projectRoot) {
+  $patterns = @(
+    "from flask import",
+    "Flask(",
+    "fastapi",
+    "uvicorn",
+    "django",
+    "streamlit",
+    "gradio",
+    "app.run(host=",
+    "0.0.0.0"
+  )
+  $files = Get-ChildItem -LiteralPath $projectRoot -Recurse -File -Include *.py,*.ps1,*.json,*.yml,*.yaml,*.toml -ErrorAction SilentlyContinue |
+    Where-Object {
+      $_.FullName -notmatch [Regex]::Escape("\cursor_rules\") -and
+      $_.FullName -notmatch [Regex]::Escape("\.venv\") -and
+      $_.FullName -notmatch [Regex]::Escape("\.git\") -and
+      $_.FullName -notmatch [Regex]::Escape("\__pycache__\") -and
+      $_.FullName -notmatch [Regex]::Escape("\dist\") -and
+      $_.FullName -notmatch [Regex]::Escape("\build\")
+    }
+  foreach ($f in $files) {
+    try {
+      $text = Read-TextAnyEncoding $f.FullName
+    } catch {
+      continue
+    }
+    foreach ($p in $patterns) {
+      if ($text -match [Regex]::Escape($p)) {
+        return $true
+      }
+    }
+  }
+  return $false
+}
+
 function Show-InfoPopup([string]$title, [string]$message) {
   try {
     $escapedTitle = $title.Replace("'", "''")
@@ -184,6 +220,10 @@ $manualCheckGuidance = $null
 if ($policy.PSObject.Properties.Name -contains "manualCheckGuidance") {
   $manualCheckGuidance = $policy.manualCheckGuidance
 }
+$manualReviewScope = "always"
+if ($policy.PSObject.Properties.Name -contains "manualReviewScope") {
+  $manualReviewScope = [string]$policy.manualReviewScope
+}
 $runtimeChecks = @()
 if ($policy.PSObject.Properties.Name -contains "runtimeChecks") {
   foreach ($rc in @($policy.runtimeChecks)) {
@@ -195,6 +235,7 @@ if ($policy.PSObject.Properties.Name -contains "runtimeChecks") {
 
 $venvPython = Join-Path $root ".venv\\Scripts\\python.exe"
 $testsDir = Join-Path $root "tests"
+$isWebProject = Test-IsWebProject $root
 
 if ($checkFlags.requireTestEnvironment) {
   if (-not (Test-Path -LiteralPath $venvPython)) {
@@ -332,7 +373,13 @@ if ($checkFlags.enforceRequirementMap) {
       }
     }
   }
-  foreach ($rid in $manualRequirementIds) {
+  $effectiveManualIds = @()
+  if ($manualReviewScope -eq "web_only") {
+    if ($isWebProject) { $effectiveManualIds = $manualRequirementIds }
+  } else {
+    $effectiveManualIds = $manualRequirementIds
+  }
+  foreach ($rid in $effectiveManualIds) {
     if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
       [void]$coveredReqIds.Add([string]$rid)
     }
@@ -366,7 +413,13 @@ if ($checkFlags.enforceRequirementClassification) {
     }
   }
   $manualReqIds = New-Object System.Collections.Generic.HashSet[string]
-  foreach ($rid in $manualRequirementIds) {
+  $effectiveManualIds = @()
+  if ($manualReviewScope -eq "web_only") {
+    if ($isWebProject) { $effectiveManualIds = $manualRequirementIds }
+  } else {
+    $effectiveManualIds = $manualRequirementIds
+  }
+  foreach ($rid in $effectiveManualIds) {
     if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
       [void]$manualReqIds.Add([string]$rid)
     }
@@ -666,10 +719,16 @@ if (-not $checkFlags.runUnitTestsWhenAvailable) {
   }
 }
 
-if ($manualRequirementIds.Count -gt 0) {
+$effectiveManualIds = @()
+if ($manualReviewScope -eq "web_only") {
+  if ($isWebProject) { $effectiveManualIds = $manualRequirementIds }
+} else {
+  $effectiveManualIds = $manualRequirementIds
+}
+if ($effectiveManualIds.Count -gt 0) {
   Step "Manual review required (human check)"
   $lines = New-Object System.Collections.Generic.List[string]
-  foreach ($rid in $manualRequirementIds) {
+  foreach ($rid in $effectiveManualIds) {
     $ridText = [string]$rid
     if ([string]::IsNullOrWhiteSpace($ridText)) { continue }
     $guidance = ""
