@@ -17,6 +17,28 @@ function Step([string]$msg) {
   Write-Host ("== " + $msg + " ==")
 }
 
+function Print-ChecklistA() {
+  Write-Host ""
+  Write-Host "【Checklist A（統合チェック）】"
+  Write-Host "目的：依頼対応の『すり抜け』を潰す。チェックだけで完了扱いは禁止。失敗したら直して同じChecklist Aをもう一回回す。"
+  Write-Host ""
+  Write-Host "1. cursor_rules（サブモジュール）が存在し、中身が取れている"
+  Write-Host "2. 必須の6本 .mdc が揃っている（.cursor/rules/）"
+  Write-Host "   - venv-only-common.mdc"
+  Write-Host "   - errors-debug-unittest-common.mdc"
+  Write-Host "   - post-modification-common.mdc"
+  Write-Host "   - gui-build-security-common.mdc"
+  Write-Host "   - markdown-common.mdc"
+  Write-Host "   - update-management-common.mdc"
+  Write-Host "3. Markdown目次ルール（全 .md）"
+  Write-Host "   - fix: 目次が無い/壊れている .md は自動で付与（.bak を作ってから）"
+  Write-Host "   - check: fix 後に再チェックして通す"
+  Write-Host "4. 単体テスト（プロジェクトに tests がある場合）"
+  Write-Host "   - .venv があり tests/ があるなら pytest→失敗時 unittest を実行して通す"
+  Write-Host "   - 無い場合は SKIP（ただし、テストが必要な修正なら tests を用意する）"
+  Write-Host ""
+}
+
 function Fail([string]$msg) {
   Write-Host ("FAIL: " + $msg)
   exit 1
@@ -28,6 +50,7 @@ $rulesDir = Join-Path $cursorRules ".cursor\\rules"
 
 Step "Checklist A start"
 Write-Host ("ProjectRoot: " + $root)
+Print-ChecklistA
 
 if (-not (Test-Path -LiteralPath $cursorRules)) {
   Fail ("Missing submodule directory: " + $cursorRules)
