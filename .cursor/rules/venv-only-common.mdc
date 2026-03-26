@@ -17,3 +17,30 @@ alwaysApply: true
 
 3. 誤ってシステムPythonにインストールした場合は、
    アンインストールして元に戻し、完了を報告する。
+
+---
+
+## 実行例（Windows / PowerShell）
+
+```powershell
+# プロジェクトへ移動
+cd <プロジェクトルートに置き換え>
+
+# 1) いちばん確実：.venv の exe をフルパスで使う（「システムPython誤爆」を防ぎやすい）
+.\.venv\Scripts\python.exe <スクリプト名.py>
+.\.venv\Scripts\pip.exe install -r requirements.txt
+
+# 2) 使い慣れているなら：activate してから python/pip を使う
+.\.venv\Scripts\Activate.ps1
+python <スクリプト名.py>
+pip install -r requirements.txt
+```
+
+## 誤ってシステムPythonに入れたとき（復旧）
+
+- `.venv` ではなくシステム側に入った疑いがある場合、**システム側からアンインストールして元に戻す**。
+- 例（パッケージを外す）:
+
+```powershell
+python -m pip uninstall -y <パッケージ名>
+```
