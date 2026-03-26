@@ -25,6 +25,43 @@ function Resolve-AbsPath([string]$path) {
   return (Resolve-Path -LiteralPath $path).Path
 }
 
+function Read-TextFileLines([string]$path) {
+  $bytes = [System.IO.File]::ReadAllBytes($path)
+
+  if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+    $text = [System.Text.Encoding]::UTF8.GetString($bytes)
+    $encoding = "utf8-bom"
+  } elseif ($bytes.Length -ge 2 -and $bytes[0] -eq 0xFF -and $bytes[1] -eq 0xFE) {
+    $text = [System.Text.Encoding]::Unicode.GetString($bytes)
+    $encoding = "utf16le"
+  } elseif ($bytes.Length -ge 2 -and $bytes[0] -eq 0xFE -and $bytes[1] -eq 0xFF) {
+    $text = [System.Text.Encoding]::BigEndianUnicode.GetString($bytes)
+    $encoding = "utf16be"
+  } else {
+    $utf8Strict = New-Object System.Text.UTF8Encoding($false, $true)
+    try {
+      $text = $utf8Strict.GetString($bytes)
+      $encoding = "utf8"
+    } catch {
+      $cp932 = [System.Text.Encoding]::GetEncoding(932)
+      $text = $cp932.GetString($bytes)
+      $encoding = "cp932"
+    }
+  }
+
+  $lines = $text -split "\r\n|\n|\r"
+  return [PSCustomObject]@{
+    Lines    = $lines
+    Encoding = $encoding
+  }
+}
+
+function Write-TextFileUtf8Bom([string]$path, [string[]]$lines) {
+  $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+  $text = ($lines -join "`r`n") + "`r`n"
+  [System.IO.File]::WriteAllText($path, $text, $utf8Bom)
+}
+
 function Should-ExcludeFile([string]$fullPath, [string[]]$excludeDirNames) {
   foreach ($name in $excludeDirNames) {
     if ($fullPath -match ("[\\/]" + [Regex]::Escape($name) + "[\\/]")) {
@@ -164,7 +201,8 @@ $problems = New-Object System.Collections.Generic.List[string]
 $fixed = 0
 
 foreach ($f in $mdFiles) {
-  $content = Get-Content -LiteralPath $f.FullName -ErrorAction Stop
+  $read = Read-TextFileLines $f.FullName
+  $content = $read.Lines
   $headings = Get-HeadingLines $content
   if ($headings.Count -le 1) {
     continue
@@ -175,7 +213,7 @@ foreach ($f in $mdFiles) {
       $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
       Copy-Item -LiteralPath $f.FullName -Destination ($f.FullName + ".bak." + $stamp) -Force
       $newContent = Build-TocAndAnchors $content
-      [System.IO.File]::WriteAllText($f.FullName, ($newContent -join "`r`n") + "`r`n", [System.Text.Encoding]::UTF8)
+      Write-TextFileUtf8Bom $f.FullName $newContent
       $fixed++
       continue
     }
