@@ -108,6 +108,7 @@ $cursorRules = Join-Path $root "cursor_rules"
 $rulesDir = Join-Path $cursorRules ".cursor\\rules"
 $updateMdc = Join-Path $rulesDir "update-management-common.mdc"
 $tasksTemplate = Join-Path $cursorRules "templates\\vscode_tasks.tasks.json.example"
+$projectTasksPath = Join-Path $root ".vscode\\tasks.json"
 
 Step "Checklist A start"
 Write-Host ("ProjectRoot: " + $root)
@@ -267,6 +268,31 @@ if ($runtimeChecks.Count -gt 0) {
           & $venvPython -m unittest discover -s tests -v
           if ($LASTEXITCODE -ne 0) {
             Fail ("runtime test check failed: " + $id)
+          }
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
+      "project_tasks_has_labels" {
+        if (-not (Test-Path -LiteralPath $projectTasksPath)) {
+          Fail ("runtime check failed: " + $id + " (.vscode/tasks.json missing)")
+        }
+        $projTasks = Read-Json $projectTasksPath
+        $projLabels = @($projTasks.tasks | ForEach-Object { $_.label })
+        foreach ($label in $requiredTaskLabels) {
+          if (-not ($projLabels -contains $label)) {
+            Fail ("runtime check failed: " + $id + " (missing task label: " + $label + ")")
+          }
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
+      "no_project_rule_copies" {
+        $projectRulesDir = Join-Path $root ".cursor\\rules"
+        if (Test-Path -LiteralPath $projectRulesDir) {
+          foreach ($name in $requiredMdc) {
+            $copyPath = Join-Path $projectRulesDir $name
+            if (Test-Path -LiteralPath $copyPath) {
+              Fail ("runtime check failed: " + $id + " (copied common mdc found: " + $copyPath + ")")
+            }
           }
         }
         Write-Host ("OK runtime: " + $id)

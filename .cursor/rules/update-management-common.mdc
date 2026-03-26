@@ -73,6 +73,16 @@ alwaysApply: true
       "id": "venv-pytest-or-unittest",
       "type": "venv_test_runner",
       "requiredWhen": "venv_and_tests_exist"
+    },
+    {
+      "id": "project-tasks-updated",
+      "type": "project_tasks_has_labels",
+      "requiredWhen": "always"
+    },
+    {
+      "id": "no-copied-common-mdc-in-project",
+      "type": "no_project_rule_copies",
+      "requiredWhen": "always"
     }
   ]
 }
