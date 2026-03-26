@@ -8,6 +8,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$script:LastFailureMessage = ""
+
 function Resolve-AbsPath([string]$path) {
   return (Resolve-Path -LiteralPath $path).Path
 }
@@ -80,6 +82,20 @@ function Step([string]$msg) {
   Write-Host ("== " + $msg + " ==")
 }
 
+function Show-InfoPopup([string]$title, [string]$message) {
+  try {
+    $escapedTitle = $title.Replace("'", "''")
+    $escapedMessage = $message.Replace("'", "''")
+    $popupScript = @"
+Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue | Out-Null
+[System.Windows.Forms.MessageBox]::Show('$escapedMessage', '$escapedTitle') | Out-Null
+"@
+    Start-Process -FilePath "powershell" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", $popupScript) -WindowStyle Hidden | Out-Null
+  } catch {
+    # Best-effort only. Non-GUI environments may not support popup.
+  }
+}
+
 function Print-ChecklistA() {
   Write-Host ""
   Write-Host "[Checklist A]"
@@ -99,7 +115,14 @@ function Print-ChecklistA() {
 }
 
 function Fail([string]$msg) {
+  $script:LastFailureMessage = $msg
   Write-Host ("FAIL: " + $msg)
+  Write-Host ""
+  Write-Host "Next actions:"
+  Write-Host "1) Fix the item shown in FAIL message."
+  Write-Host "2) Re-run: sync: checklist A spec (mdc -> spec)"
+  Write-Host "3) Re-run: run: checklist A (all rules)"
+  Show-InfoPopup "Checklist A FAILED" ("FAIL: " + $msg + "`r`n`r`nFix and re-run Checklist A.")
   exit 1
 }
 
@@ -139,6 +162,10 @@ if ($policy.PSObject.Properties.Name -contains "requirementIds") {
 $manualRequirementIds = @()
 if ($policy.PSObject.Properties.Name -contains "manualRequirementIds") {
   $manualRequirementIds = @($policy.manualRequirementIds)
+}
+$manualCheckGuidance = $null
+if ($policy.PSObject.Properties.Name -contains "manualCheckGuidance") {
+  $manualCheckGuidance = $policy.manualCheckGuidance
 }
 $runtimeChecks = @()
 if ($policy.PSObject.Properties.Name -contains "runtimeChecks") {
@@ -342,6 +369,29 @@ if ($checkFlags.enforceRequirementClassification) {
     } else {
       Write-Host ("OK requirement(auto): " + $rid)
     }
+  }
+}
+
+if ($manualRequirementIds.Count -gt 0) {
+  Step "Manual review required (human check)"
+  $lines = New-Object System.Collections.Generic.List[string]
+  foreach ($rid in $manualRequirementIds) {
+    $ridText = [string]$rid
+    if ([string]::IsNullOrWhiteSpace($ridText)) { continue }
+    $guidance = ""
+    if ($null -ne $manualCheckGuidance -and ($manualCheckGuidance.PSObject.Properties.Name -contains $ridText)) {
+      $guidance = [string]$manualCheckGuidance.PSObject.Properties[$ridText].Value
+    }
+    if ([string]::IsNullOrWhiteSpace($guidance)) {
+      $guidance = "Manual confirmation required."
+    }
+    $line = ("- " + $ridText + ": " + $guidance)
+    Write-Host $line
+    [void]$lines.Add($line)
+  }
+  if ($lines.Count -gt 0) {
+    $popupText = "Manual review required before final sign-off:`r`n`r`n" + ($lines -join "`r`n")
+    Show-InfoPopup "Checklist A Manual Review" $popupText
   }
 }
 

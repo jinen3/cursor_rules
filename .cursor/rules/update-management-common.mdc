@@ -105,6 +105,9 @@ alwaysApply: true
   "manualRequirementIds": [
     "sec.use_safe_runtime_context"
   ],
+  "manualCheckGuidance": {
+    "sec.use_safe_runtime_context": "WEBアプリが localhost / 192.168.x.x にのみバインドされ、0.0.0.0 で公開されていないことを実際の起動設定で確認する。"
+  },
   "runtimeChecks": [
     {
       "id": "venv-python-prefix",
