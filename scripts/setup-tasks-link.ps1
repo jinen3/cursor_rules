@@ -1,21 +1,21 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  プロジェクト側に .vscode/tasks.json のリンクを作る（コピーしない運用）。
+  Create project .vscode/tasks.json as a symlink (preferred) or copy (fallback).
 
 .DESCRIPTION
-  VS Code/Cursor の Task は通常「プロジェクト側の .vscode/tasks.json」を参照する。
-  共通リポジトリ（cursor_rules）側の Task 定義をそのまま使いたい場合、
-  プロジェクト側に tasks.json のシンボリックリンクを作るのが現実解。
+  VS Code / Cursor reads tasks from: <project>/.vscode/tasks.json
+  This script links it to: <project>/cursor_rules/templates/vscode_tasks.tasks.json.example
 
-  注意: Windows は設定によりシンボリックリンク作成に管理者権限や「開発者モード」が必要な場合がある。
-  その場合は「代わりに」コピーを作成する（コピー運用は共通更新が自動反映されない）。
+  On Windows, creating symlinks may require Admin or Developer Mode.
+  If symlink creation fails, this script falls back to copying the file and
+  writes a marker file: <project>/.vscode/tasks_copy.txt
 
 .PARAMETER ProjectRoot
-  親リポジトリ（プロジェクト）ルート。省略時はカレントディレクトリ。
+  Project (parent repo) root. Defaults to current directory.
 
 .PARAMETER Force
-  既存の .vscode/tasks.json がある場合に上書きする（バックアップを作成）。
+  Overwrite existing .vscode/tasks.json (creates a timestamped backup).
 #>
 param(
     [string]$ProjectRoot = "",
@@ -34,11 +34,11 @@ $linkPath = Join-Path $vscodeDir "tasks.json"
 $targetPath = Join-Path $ProjectRoot "cursor_rules\\templates\\vscode_tasks.tasks.json.example"
 
 if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot ".git"))) {
-    throw "Git リポジトリのルートではありません: $ProjectRoot"
+    throw ("Not a git repo root: {0}" -f $ProjectRoot)
 }
 
 if (-not (Test-Path -LiteralPath $targetPath)) {
-    throw "リンク先が見つかりません（cursor_rules サブモジュールが無い/未取得の可能性）: $targetPath"
+    throw ("Target not found (missing/unfetched submodule?): {0}" -f $targetPath)
 }
 
 if (-not (Test-Path -LiteralPath $vscodeDir)) {
@@ -47,36 +47,34 @@ if (-not (Test-Path -LiteralPath $vscodeDir)) {
 
 if (Test-Path -LiteralPath $linkPath) {
     if (-not $Force) {
-        Write-Host "既に存在します（何もしません）。上書きするなら -Force を指定: $linkPath" -ForegroundColor Yellow
+        Write-Host ("Already exists (no changes). Use -Force to overwrite: {0}" -f $linkPath) -ForegroundColor Yellow
         exit 0
     }
-    $backup = "$linkPath.bak.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    $backup = ("{0}.bak.{1}" -f $linkPath, (Get-Date -Format "yyyyMMdd_HHmmss"))
     Copy-Item -LiteralPath $linkPath -Destination $backup -Force
     Remove-Item -LiteralPath $linkPath -Force
-    Write-Host "既存をバックアップしました: $backup" -ForegroundColor DarkGray
+    Write-Host ("Backed up existing file: {0}" -f $backup) -ForegroundColor DarkGray
 }
 
 try {
     New-Item -ItemType SymbolicLink -Path $linkPath -Target $targetPath | Out-Null
-    Write-Host "シンボリックリンクを作成しました: $linkPath -> $targetPath" -ForegroundColor Green
+    Write-Host ("Symlink created: {0} -> {1}" -f $linkPath, $targetPath) -ForegroundColor Green
 } catch {
-    Write-Host "シンボリックリンク作成に失敗しました。代わりにコピーを作成します。" -ForegroundColor Yellow
-    Write-Host "理由: $($_.Exception.Message)" -ForegroundColor DarkGray
-    Copy-Item -LiteralPath $targetPath -Destination $linkPath -Force
-    Write-Host "コピーを作成しました（注意: 共通更新は自動反映されません）: $linkPath" -ForegroundColor Yellow
+    Write-Host "Symlink creation failed. Falling back to COPY." -ForegroundColor Yellow
+    Write-Host ("Reason: {0}" -f $_.Exception.Message) -ForegroundColor DarkGray
 
-    # コピー運用だと「リンクではない」ことが分かりにくいので、目印ファイルを作る（_copy 付き）
+    Copy-Item -LiteralPath $targetPath -Destination $linkPath -Force
+    Write-Host ("Copied: {0}" -f $linkPath) -ForegroundColor Yellow
+
     $markerPath = Join-Path $vscodeDir "tasks_copy.txt"
-    $markerBody = @(
-        "This project uses a COPIED tasks.json (not a symlink).",
-        "Copied from:",
-        $targetPath,
-        "Copied to:",
-        $linkPath,
-        "Copied at:",
-        (Get-Date).ToString("s")
-    ) -join [Environment]::NewLine
+    $timestamp = (Get-Date).ToString("s")
+    $markerBody = @"
+This project uses a COPIED tasks.json (not a symlink).
+Copied from: $targetPath
+Copied to:   $linkPath
+Copied at:   $timestamp
+"@
     Set-Content -LiteralPath $markerPath -Value $markerBody -Encoding UTF8
-    Write-Host "目印ファイルを作成しました: $markerPath" -ForegroundColor Yellow
+    Write-Host ("Marker file created: {0}" -f $markerPath) -ForegroundColor Yellow
 }
 
