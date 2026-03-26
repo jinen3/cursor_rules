@@ -85,6 +85,15 @@ function Step([string]$msg) {
   Write-Host ("== " + $msg + " ==")
 }
 
+function Invoke-InProject([string]$projectRoot, [scriptblock]$action) {
+  Push-Location $projectRoot
+  try {
+    & $action
+  } finally {
+    Pop-Location
+  }
+}
+
 function Show-InfoPopup([string]$title, [string]$message) {
   try {
     $escapedTitle = $title.Replace("'", "''")
@@ -429,10 +438,10 @@ if ($runtimeChecks.Count -gt 0) {
           Write-Host ("SKIP runtime check (" + $id + "): SkipTests requested")
           break
         }
-        & $venvPython -m pytest -q
+        Invoke-InProject $root { & $venvPython -m pytest -q }
         if ($LASTEXITCODE -ne 0) {
           Write-Host "pytest failed. Trying unittest discovery."
-          & $venvPython -m unittest discover -s tests -v
+          Invoke-InProject $root { & $venvPython -m unittest discover -s tests -v }
           if ($LASTEXITCODE -ne 0) {
             Fail ("runtime test check failed: " + $id)
           }
@@ -638,10 +647,10 @@ if (-not $checkFlags.runUnitTestsWhenAvailable) {
 } else {
   Step "Run unit tests with .venv python if available"
   if ((Test-Path -LiteralPath $venvPython) -and (Test-Path -LiteralPath $testsDir)) {
-    & $venvPython -m pytest -q
+    Invoke-InProject $root { & $venvPython -m pytest -q }
     if ($LASTEXITCODE -ne 0) {
       Write-Host "pytest failed. Trying unittest discovery."
-      & $venvPython -m unittest discover -s tests -v
+      Invoke-InProject $root { & $venvPython -m unittest discover -s tests -v }
       if ($LASTEXITCODE -ne 0) {
         Fail "Both pytest and unittest failed."
       }
