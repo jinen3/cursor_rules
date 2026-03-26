@@ -75,8 +75,19 @@ alwaysApply: true
       "requiredWhen": "venv_and_tests_exist"
     },
     {
+      "id": "venv-pip-path",
+      "type": "venv_pip_path_contains",
+      "expectedSubstring": ".venv",
+      "requiredWhen": "venv_exists"
+    },
+    {
       "id": "project-tasks-updated",
       "type": "project_tasks_has_labels",
+      "requiredWhen": "always"
+    },
+    {
+      "id": "project-tasks-use-cursor-rules-scripts",
+      "type": "project_tasks_use_cursor_rules_scripts",
       "requiredWhen": "always"
     },
     {

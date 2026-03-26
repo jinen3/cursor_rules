@@ -257,6 +257,20 @@ if ($runtimeChecks.Count -gt 0) {
         }
         Write-Host ("OK runtime: " + $id)
       }
+      "venv_pip_path_contains" {
+        $expected = [string]$rc.expectedSubstring
+        if ([string]::IsNullOrWhiteSpace($expected)) {
+          Fail ("runtime check missing expectedSubstring: " + $id)
+        }
+        $pipv = & $venvPython -m pip --version
+        if ($LASTEXITCODE -ne 0) {
+          Fail ("runtime check failed to execute pip: " + $id)
+        }
+        if (-not ($pipv -match [Regex]::Escape($expected))) {
+          Fail ("runtime check failed: " + $id + " (pip path does not contain " + $expected + ")")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
       "venv_test_runner" {
         if ($SkipTests) {
           Write-Host ("SKIP runtime check (" + $id + "): SkipTests requested")
@@ -281,6 +295,23 @@ if ($runtimeChecks.Count -gt 0) {
         foreach ($label in $requiredTaskLabels) {
           if (-not ($projLabels -contains $label)) {
             Fail ("runtime check failed: " + $id + " (missing task label: " + $label + ")")
+          }
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
+      "project_tasks_use_cursor_rules_scripts" {
+        if (-not (Test-Path -LiteralPath $projectTasksPath)) {
+          Fail ("runtime check failed: " + $id + " (.vscode/tasks.json missing)")
+        }
+        $rawTasksJson = Read-TextAnyEncoding $projectTasksPath
+        $requiredRefs = @(
+          "cursor_rules\\\\scripts\\\\run-checklist-a.ps1",
+          "cursor_rules\\\\scripts\\\\check-markdown-toc.ps1",
+          "cursor_rules\\\\scripts\\\\dev-start-cursor-rules.ps1"
+        )
+        foreach ($ref in $requiredRefs) {
+          if (-not ($rawTasksJson -match [Regex]::Escape($ref))) {
+            Fail ("runtime check failed: " + $id + " (missing script reference: " + $ref + ")")
           }
         }
         Write-Host ("OK runtime: " + $id)
