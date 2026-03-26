@@ -88,8 +88,14 @@ function Build-TocAndAnchors([string[]]$lines) {
     if ($line -match '^\s{0,3}#{1,6}\s+\S') {
       $sec++
       $anchor = "sec" + $sec
+      $level = ([Regex]::Match($line, '^\s{0,3}(#{1,6})').Groups[1].Value).Length
+      $indent = ""
+      if ($level -gt 2) {
+        $spaces = ($level - 2) * 2
+        $indent = (" " * $spaces)
+      }
       $title = ($line -replace '^\s{0,3}#{1,6}\s+', '').Trim()
-      $tocLinks.Add("- [$title](#$anchor)") | Out-Null
+      $tocLinks.Add($indent + "- [$title](#$anchor)") | Out-Null
       $injected.Add("<a id=""$anchor""></a>") | Out-Null
       $injected.Add($line) | Out-Null
     } else {

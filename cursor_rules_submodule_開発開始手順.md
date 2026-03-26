@@ -409,6 +409,18 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 - メニュー: `ターミナル(T)` → `タスクの実行…` → `dev-start (cursor_rules submodule)` を選ぶ
 - コマンドパレット: `Ctrl+Shift+P` → `Tasks: Run Task`（日本語UIだと「タスク: タスクの実行」等）→ 同タスクを選ぶ
 
+**fix/check タスクが一覧に出てこない時（最重要）**
+
+- 理由：プロジェクト側の `.vscode/tasks.json` が **古いまま**だと、共通側（テンプレ）にタスクを追加しても **一覧に出ない**。
+- 最短で最新化（コピペでOK。プロジェクトルートで実行）：
+
+```powershell
+cd <プロジェクトルートに置き換え>
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1 -Force
+```
+
+- その後、`タスクの実行…` を **閉じて開き直す**（必要なら `Reload Window`）。
+
 ### 6) （共有＝公開）親リポジトリに commit/push する（他人/別PCにも反映）
 
 これは「ローカルで何らかの操作をして、**親リポジトリが記録しているサブモジュールの参照先（ポインタ）と、いま手元の `cursor_rules` が指しているコミットがズレた**」ときに使います。
