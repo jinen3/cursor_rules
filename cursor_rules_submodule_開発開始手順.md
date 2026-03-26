@@ -69,6 +69,18 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 - シンボリックリンクに失敗した場合はコピーに **フォールバック（代替）**し、`.vscode/tasks_copy.txt` が目印になることがある。  
 - 実行後、もう一度 `タスクの実行…` を開き直す。
 
+**いまのコピーを更新したい最短手順（リンク作成に失敗する環境向け）**
+
+`.vscode/tasks.json` が既に存在する場合、`-Force` が無いと「既に存在します（何もしません）」で終了し、コピーが更新されません。**プロジェクトのルートで `-Force` を付けて実行**します。
+
+```powershell
+cd <プロジェクトルートに置き換え>
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1 -Force
+```
+
+- これで既存 `tasks.json` を **バックアップして作り直します**
+- 権限不足なら **コピーで代替しつつ、内容は最新になります**
+
 **（ルール）全プロジェクト共通の不具合は「共通側」で直す**
 
 `setup-tasks-link.ps1` が PowerShell の **パースエラー**（例：`TerminatorExpectedAtEndOfString` など）で落ちる場合、スクリプト自体の不具合なので **どのプロジェクトでも再発**します。
