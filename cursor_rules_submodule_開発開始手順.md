@@ -117,7 +117,7 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 **重要（事故防止）**
 
 - **Rules画面のゴミ箱（Delete）は「設定だけ」ではなく、参照元の `.mdc` ファイル自体を削除してしまうことがある。**（サブモジュール内でも `deleted` 扱いになりうる）
-  - ルールを一時的に外したいだけなら、**Delete ではなく適用方法を `Apply manually` に切り替える**（= 無効化）ほうが安全
+  - ルールを一時的に外したいだけなら、**Delete ではなく適用方法を `Agent decides when to apply` に切り替える**（= 常時適用をやめる）ほうが安全
   - もし誤って消えて `git status` で `deleted: .cursor/rules/xxx.mdc` が出たら、サブモジュール側で復旧する：
 
 ```powershell
