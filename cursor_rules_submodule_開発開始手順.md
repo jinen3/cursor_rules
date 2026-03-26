@@ -8,13 +8,27 @@
 
 ---
 
+### まず概要（表）
+
+| いま困ってること | やること | どこを見る |
+|---|---|---|
+| ふだんの開発開始（毎回） | `dev-start` を実行 → ソース管理で共有の有無を確認 | **A** |
+| `dev-start` がタスク一覧に出ない | `.vscode/tasks.json` を作る（リンク作成） | **B-2** |
+| そもそも `cursor_rules` が無い | サブモジュールを追加して push | **B-1** |
+| ルールが効かない（Rules未登録） | 6本の `.mdc` を Rules にパス登録（alwaysApply） | **B-3** |
+
 ### A) 毎回（数秒）：開発に入る前の固定ルーティン
 
-1. `ターミナル(T)` → `タスクの実行…` → **`dev-start (cursor_rules submodule)`** を選ぶ  
+1. `ターミナル(T)` → `タスクの実行…` → **`dev-start (cursor_rules submodule)`** を選ぶ（サブモジュール=ルールを取得して最新化する）  
    - 一覧に **無い** → まず下の **B-2**（その前に **B-1** が未完了なら B-1 から）
-2. `Ctrl+Shift+G`（ソース管理）→ `cursor_rules (new commits)` が出ていれば **ステージ → コミット → 同期/プッシュ**（チームに共有するときだけ）
+2. `Ctrl+Shift+G`（ソース管理）→ `cursor_rules (new commits)` が出ていれば **ステージ → コミット → 同期/プッシュ**（親が指す参照先を共有して、別PC/他人でも同じ状態にする）
 
-**タスクが無いときの代替（クリックできないときだけ・親リポジトリのルートで）**
+**タスクが無いときの代替（クリックできないときだけ・親リポジトリのルートで コマンド実行）**
+
+`dev-start` が中でやっていること（要点）はこの2つです。
+
+- `git submodule update --init --recursive`（未取得/未初期化を解消）
+- `git submodule update --remote cursor_rules`（必要ならリモート最新へ更新）
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1
@@ -31,11 +45,12 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 親リポジトリの**ルート**で実行（Cursor のターミナルで可）。**ルート直下に `cursor_rules` という名前の通常フォルダがあると失敗**するので、その場合は退避か削除してから。
 
 ```powershell
-cd <プロジェクトルートに置き換え>
-git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules
-git add .gitmodules cursor_rules
-git commit -m "Add cursor_rules submodule"
-git push
+# Cursorでターミナルを開く: Ctrl+`（バッククォート）
+cd <プロジェクトルートに置き換え> # 作業ディレクトリをプロジェクトのルートに移動
+git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules # cursor_rules をサブモジュールとして追加
+git add .gitmodules cursor_rules # サブモジュール設定と参照先（ポインタ）変更をステージ
+git commit -m "Add cursor_rules submodule" # サブモジュール追加をコミット
+git push # GitHubへ送って他PC/他人にも反映
 ```
 
 #### B-2. `タスクの実行…` に `dev-start` が出ない（`.vscode/tasks.json` 未準備）
@@ -43,11 +58,12 @@ git push
 **B-1 が済んで `cursor_rules` フォルダが取れていること**が前提。親リポジトリの**ルート**で：
 
 ```powershell
-cd <プロジェクトルートに置き換え>
-powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1
+# Cursorでターミナルを開く: Ctrl+`（バッククォート）
+cd <プロジェクトルートに置き換え> # 作業ディレクトリをプロジェクトのルートに移動
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1 # `.vscode/tasks.json` を作成（推奨: 共通テンプレへのリンク。不可ならコピー）
 ```
 
-- シンボリックリンクに失敗した場合はコピーにフォールバックし、`.vscode/tasks_copy.txt` が目印になることがある。  
+- シンボリックリンクに失敗した場合はコピーに **フォールバック（代替）**し、`.vscode/tasks_copy.txt` が目印になることがある。  
 - 実行後、もう一度 `タスクの実行…` を開き直す。
 
 #### B-3. Rules に 6 本の `.mdc` が未登録（パス指定の手動登録が必要）
@@ -59,6 +75,8 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 3. 次の **フォルダ**にある **6 ファイルすべて**を追加し、**それぞれ `alwaysApply: true`**（常に適用）にする  
 
 **登録元フォルダ（エクスプローラーで開くとき）**
+
+ここは、**プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録する**ための場所です。
 
 ```text
 <プロジェクトルート>\cursor_rules\.cursor\rules\
