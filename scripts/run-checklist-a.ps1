@@ -31,6 +31,24 @@ function Read-Json([string]$path) {
   return $t | ConvertFrom-Json
 }
 
+function Read-ChecklistPolicy([string]$updateMdcPath) {
+  $text = Read-TextAnyEncoding $updateMdcPath
+  $m = [Regex]::Match(
+    $text,
+    '<!-- CHECKLIST_A_POLICY_START -->\s*```json\s*(?<json>\{[\s\S]*?\})\s*```\s*<!-- CHECKLIST_A_POLICY_END -->',
+    [System.Text.RegularExpressions.RegexOptions]::Singleline
+  )
+  if (-not $m.Success) {
+    Fail "Missing CHECKLIST_A_POLICY block in update-management-common.mdc"
+  }
+  $jsonText = $m.Groups["json"].Value.Trim()
+  try {
+    return $jsonText | ConvertFrom-Json
+  } catch {
+    Fail "Invalid JSON in CHECKLIST_A_POLICY block"
+  }
+}
+
 function Normalize-TextForSpec([string]$text) {
   $norm = $text -replace "`r`n", "`n" -replace "`r", "`n"
   $norm = $norm.TrimEnd("`n")
@@ -79,6 +97,8 @@ function Fail([string]$msg) {
 $root = Resolve-AbsPath $ProjectRoot
 $cursorRules = Join-Path $root "cursor_rules"
 $rulesDir = Join-Path $cursorRules ".cursor\\rules"
+$updateMdc = Join-Path $rulesDir "update-management-common.mdc"
+$tasksTemplate = Join-Path $cursorRules "templates\\vscode_tasks.tasks.json.example"
 
 Step "Checklist A start"
 Write-Host ("ProjectRoot: " + $root)
@@ -92,14 +112,15 @@ if (-not (Test-Path -LiteralPath $rulesDir)) {
   Fail ("Missing rules directory: " + $rulesDir)
 }
 
-$requiredMdc = @(
-  "venv-only-common.mdc",
-  "errors-debug-unittest-common.mdc",
-  "post-modification-common.mdc",
-  "gui-build-security-common.mdc",
-  "markdown-common.mdc",
-  "update-management-common.mdc"
-)
+$policy = Read-ChecklistPolicy $updateMdc
+$requiredMdc = @($policy.requiredMdc)
+$requiredScripts = @($policy.requiredScripts)
+$requiredTaskLabels = @($policy.requiredTaskLabels)
+$checkFlags = $policy.checks
+
+if ($requiredMdc.Count -eq 0) { Fail "Policy requiredMdc is empty" }
+if ($requiredScripts.Count -eq 0) { Fail "Policy requiredScripts is empty" }
+if ($requiredTaskLabels.Count -eq 0) { Fail "Policy requiredTaskLabels is empty" }
 
 Step "Check required 6 mdc files"
 foreach ($name in $requiredMdc) {
@@ -110,52 +131,80 @@ foreach ($name in $requiredMdc) {
   Write-Host ("OK: " + $name)
 }
 
-Step "Check 6 mdc content (full-content hash from SPEC)"
-$specPath = Join-Path $cursorRules "spec\\checklist_a_requirements.json"
-if (-not (Test-Path -LiteralPath $specPath)) {
-  Fail ("Missing spec file: " + $specPath)
+Step "Check required scripts from policy"
+foreach ($rel in $requiredScripts) {
+  $p = Join-Path $cursorRules $rel
+  if (-not (Test-Path -LiteralPath $p)) {
+    Fail ("Missing script: " + $rel)
+  }
+  Write-Host ("OK script: " + $rel)
 }
-$spec = Read-Json $specPath
 
-foreach ($name in $requiredMdc) {
-  $p = Join-Path $rulesDir $name
-  $t = Read-TextAnyEncoding $p
+Step "Check required task labels from policy"
+if (-not (Test-Path -LiteralPath $tasksTemplate)) {
+  Fail ("Missing tasks template: " + $tasksTemplate)
+}
+$tasks = Read-Json $tasksTemplate
+$labels = @($tasks.tasks | ForEach-Object { $_.label })
+foreach ($label in $requiredTaskLabels) {
+  if (-not ($labels -contains $label)) {
+    Fail ("Missing task label in template: " + $label)
+  }
+  Write-Host ("OK task: " + $label)
+}
 
-  $req = $spec.mdc.$name
-  if ($null -eq $req) {
-    Fail ("Missing spec entry for: " + $name)
+if ($checkFlags.enforceSpecSync) {
+  Step "Check 6 mdc content (full-content hash from SPEC)"
+  $specPath = Join-Path $cursorRules "spec\\checklist_a_requirements.json"
+  if (-not (Test-Path -LiteralPath $specPath)) {
+    Fail ("Missing spec file: " + $specPath)
+  }
+  $spec = Read-Json $specPath
+
+  foreach ($name in $requiredMdc) {
+    $p = Join-Path $rulesDir $name
+    $t = Read-TextAnyEncoding $p
+
+    $req = $spec.mdc.$name
+    if ($null -eq $req) {
+      Fail ("Missing spec entry for: " + $name)
+    }
+
+    $normalized = Normalize-TextForSpec $t
+    $actual = Get-Sha256Hex $normalized
+    $expected = [string]$req.sha256
+    if ([string]::IsNullOrWhiteSpace($expected)) {
+      Fail ("Missing spec sha256 for: " + $name)
+    }
+    if ($actual -ne $expected) {
+      Fail ("Spec mismatch (mdc changed but spec not synced): " + $name)
+    }
+
+    Write-Host ("OK content: " + $name)
+  }
+}
+
+if ($checkFlags.runMarkdownTocFixAndCheck) {
+  Step "Check markdown TOC (auto-fix then re-check)"
+  $tocScript = Join-Path $cursorRules "scripts\\check-markdown-toc.ps1"
+  if (-not (Test-Path -LiteralPath $tocScript)) {
+    Fail ("Missing script: " + $tocScript)
   }
 
-  $normalized = Normalize-TextForSpec $t
-  $actual = Get-Sha256Hex $normalized
-  $expected = [string]$req.sha256
-  if ([string]::IsNullOrWhiteSpace($expected)) {
-    Fail ("Missing spec sha256 for: " + $name)
-  }
-  if ($actual -ne $expected) {
-    Fail ("Spec mismatch (mdc changed but spec not synced): " + $name)
+  powershell -ExecutionPolicy Bypass -File $tocScript -RootPath $root -Fix
+  if ($LASTEXITCODE -ne 0) {
+    Fail "TOC fix phase failed."
   }
 
-  Write-Host ("OK content: " + $name)
+  powershell -ExecutionPolicy Bypass -File $tocScript -RootPath $root
+  if ($LASTEXITCODE -ne 0) {
+    Fail "TOC check phase failed after auto-fix."
+  }
 }
 
-Step "Check markdown TOC (auto-fix then re-check)"
-$tocScript = Join-Path $cursorRules "scripts\\check-markdown-toc.ps1"
-if (-not (Test-Path -LiteralPath $tocScript)) {
-  Fail ("Missing script: " + $tocScript)
-}
-
-powershell -ExecutionPolicy Bypass -File $tocScript -RootPath $root -Fix
-if ($LASTEXITCODE -ne 0) {
-  Fail "TOC fix phase failed."
-}
-
-powershell -ExecutionPolicy Bypass -File $tocScript -RootPath $root
-if ($LASTEXITCODE -ne 0) {
-  Fail "TOC check phase failed after auto-fix."
-}
-
-if ($SkipTests) {
+if (-not $checkFlags.runUnitTestsWhenAvailable) {
+  Step "Skip tests (policy disabled)"
+} elseif ($SkipTests) {
   Step "Skip tests (requested)"
 } else {
   Step "Run unit tests with .venv python if available"

@@ -30,4 +30,40 @@ alwaysApply: true
 - **`mdc` 更新時は `spec` 同時更新を必須化：** 6本の `.mdc` のどれかを変更したら、**必ず** `cursor_rules/scripts/sync-checklist-a-spec.ps1` を実行して `spec/checklist_a_requirements.json` を更新する。`spec` は「6本 `.mdc` の全内容（正規化後）」のハッシュを保持する。**更新しないまま commit/push することは禁止**。
 - **判定の基準（抜け漏れ防止）：** `run: checklist A (all rules)` は 6本 `.mdc` それぞれについて「正規化済み全内容の SHA-256」を `spec/checklist_a_requirements.json` と照合する。一致しない場合は **FAIL（mdc changed but spec not synced）** として作業完了不可。
 
+## Checklist A 実行定義（機械可読・厳守）
+
+- 下の JSON は `run-checklist-a.ps1` が直接読み込む実行定義。
+- この定義を更新したら、同じコミットでスクリプト側の実行結果も確認すること。
+
+<!-- CHECKLIST_A_POLICY_START -->
+```json
+{
+  "requiredMdc": [
+    "venv-only-common.mdc",
+    "errors-debug-unittest-common.mdc",
+    "post-modification-common.mdc",
+    "gui-build-security-common.mdc",
+    "markdown-common.mdc",
+    "update-management-common.mdc"
+  ],
+  "requiredScripts": [
+    "scripts/run-checklist-a.ps1",
+    "scripts/check-markdown-toc.ps1",
+    "scripts/sync-checklist-a-spec.ps1"
+  ],
+  "requiredTaskLabels": [
+    "run: checklist A (all rules)",
+    "sync: checklist A spec (mdc -> spec)",
+    "check: markdown toc (project)",
+    "fix: markdown toc (project)"
+  ],
+  "checks": {
+    "enforceSpecSync": true,
+    "runMarkdownTocFixAndCheck": true,
+    "runUnitTestsWhenAvailable": true
+  }
+}
+```
+<!-- CHECKLIST_A_POLICY_END -->
+
 詳細（リポジトリの役割・サブモジュール手順・Cursor の使い方）は **Cursor開発共通ルール_ユーザー向け説明.md の参考4** を参照。

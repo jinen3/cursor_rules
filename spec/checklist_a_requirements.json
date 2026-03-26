@@ -1,7 +1,7 @@
 ﻿{
     "spec_version":  1,
     "source_of_truth":  "mdc-files",
-    "generated_utc":  "2026-03-26T16:31:12Z",
+    "generated_utc":  "2026-03-26T16:39:57Z",
     "normalization":  "utf8 text, CRLF/LF normalized to LF, exactly one trailing LF",
     "mdc":  {
                 "venv-only-common.mdc":  {
@@ -25,8 +25,8 @@
                                             "bytes_utf8_normalized":  3644
                                         },
                 "update-management-common.mdc":  {
-                                                     "sha256":  "0694c94366c3b958951ba2e5a9c8a9352979e4bdae2db77b1506090f4ec60b53",
-                                                     "bytes_utf8_normalized":  7003
+                                                     "sha256":  "5c41f2211205747d66667b9a89466ba9b3fd2f98430b9ea6de9a10ee327a5cb7",
+                                                     "bytes_utf8_normalized":  8008
                                                  }
             }
 }
