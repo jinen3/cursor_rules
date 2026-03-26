@@ -111,8 +111,10 @@ function Test-IsWebProject([string]$projectRoot) {
     "app.run(host=",
     "0.0.0.0"
   )
-  $files = Get-ChildItem -LiteralPath $projectRoot -Recurse -File -Include *.py,*.ps1,*.json,*.yml,*.yaml,*.toml -ErrorAction SilentlyContinue |
+  $allowedExt = @(".py", ".ps1", ".json", ".yml", ".yaml", ".toml")
+  $files = Get-ChildItem -LiteralPath $projectRoot -Recurse -File -ErrorAction SilentlyContinue |
     Where-Object {
+      $allowedExt -contains $_.Extension.ToLowerInvariant() -and
       $_.FullName -notmatch [Regex]::Escape("\cursor_rules\") -and
       $_.FullName -notmatch [Regex]::Escape("\.venv\") -and
       $_.FullName -notmatch [Regex]::Escape("\.git\") -and
@@ -363,6 +365,20 @@ if ($checkFlags.enforceRequirementMap) {
       }
     }
   }
+  $effectiveManualIds = @()
+  if ($manualReviewScope -eq "web_only") {
+    if ($isWebProject) { $effectiveManualIds = $manualRequirementIds }
+  } else {
+    $effectiveManualIds = $manualRequirementIds
+  }
+  $outOfScopeManualIds = New-Object System.Collections.Generic.HashSet[string]
+  if ($manualReviewScope -eq "web_only" -and -not $isWebProject) {
+    foreach ($rid in @($manualRequirementIds)) {
+      if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
+        [void]$outOfScopeManualIds.Add([string]$rid)
+      }
+    }
+  }
   $coveredReqIds = New-Object System.Collections.Generic.HashSet[string]
   foreach ($rc in $runtimeChecks) {
     if ($rc.PSObject.Properties.Name -contains "coversReqs") {
@@ -373,18 +389,16 @@ if ($checkFlags.enforceRequirementMap) {
       }
     }
   }
-  $effectiveManualIds = @()
-  if ($manualReviewScope -eq "web_only") {
-    if ($isWebProject) { $effectiveManualIds = $manualRequirementIds }
-  } else {
-    $effectiveManualIds = $manualRequirementIds
-  }
   foreach ($rid in $effectiveManualIds) {
     if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
       [void]$coveredReqIds.Add([string]$rid)
     }
   }
   foreach ($rid in $allReqIds) {
+    if ($outOfScopeManualIds.Contains($rid)) {
+      Write-Host ("SKIP requirement(out of scope): " + $rid)
+      continue
+    }
     if (-not $coveredReqIds.Contains($rid)) {
       Fail ("Requirement coverage gap: " + $rid)
     }
@@ -402,6 +416,20 @@ if ($checkFlags.enforceRequirementClassification) {
       }
     }
   }
+  $effectiveManualIds = @()
+  if ($manualReviewScope -eq "web_only") {
+    if ($isWebProject) { $effectiveManualIds = $manualRequirementIds }
+  } else {
+    $effectiveManualIds = $manualRequirementIds
+  }
+  $outOfScopeManualIds = New-Object System.Collections.Generic.HashSet[string]
+  if ($manualReviewScope -eq "web_only" -and -not $isWebProject) {
+    foreach ($rid in @($manualRequirementIds)) {
+      if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
+        [void]$outOfScopeManualIds.Add([string]$rid)
+      }
+    }
+  }
   $autoReqIds = New-Object System.Collections.Generic.HashSet[string]
   foreach ($rc in $runtimeChecks) {
     if ($rc.PSObject.Properties.Name -contains "coversReqs") {
@@ -413,12 +441,6 @@ if ($checkFlags.enforceRequirementClassification) {
     }
   }
   $manualReqIds = New-Object System.Collections.Generic.HashSet[string]
-  $effectiveManualIds = @()
-  if ($manualReviewScope -eq "web_only") {
-    if ($isWebProject) { $effectiveManualIds = $manualRequirementIds }
-  } else {
-    $effectiveManualIds = $manualRequirementIds
-  }
   foreach ($rid in $effectiveManualIds) {
     if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
       [void]$manualReqIds.Add([string]$rid)
@@ -426,6 +448,10 @@ if ($checkFlags.enforceRequirementClassification) {
   }
 
   foreach ($rid in $allReqIds) {
+    if ($outOfScopeManualIds.Contains($rid)) {
+      Write-Host ("SKIP requirement(out of scope): " + $rid)
+      continue
+    }
     $isAuto = $autoReqIds.Contains($rid)
     $isManual = $manualReqIds.Contains($rid)
     if (-not ($isAuto -or $isManual)) {
