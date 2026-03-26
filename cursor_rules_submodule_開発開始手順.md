@@ -16,7 +16,7 @@
 | 毎回 | **A 1（中身）** | サブモジュール取得＋更新（コマンド） | コマンドライン（Ctrl+SHIFT+@） | `git submodule update --init --recursive`（未取得/未初期化を解消）<br>`git submodule update --remote cursor_rules`（必要ならリモート最新へ更新）<br><br>（短縮コマンド）`git submodule update --init --remote --recursive cursor_rules` | サブモジュールを取得＋更新 | GithHubからサブモジュールの中身を取得して、更新(最新に)<br><br>（短縮コマンドのメリット）短い・コピペしやすい<br>（短縮コマンドのデメリット）何が起きたか分かりにくい（init/remote の切り分けがしづらい） | ー |
 | 毎回 | **A 2** | GitHub更新 | Cursor_GitHub連携（Ctrl+Shift+G） | Ctrl+Shift+G（ソース管理）→ cursor_rules (new commits) が出ていれば ステージ → コミット → 同期/プッシュ | ソース管理で更新の有無確認 → ステージ → コミット → 同期/プッシュ | 最新サブモジュールをGitHubに反映。 | ー |
 | 準備 | **B-1** | サブモジュールの作成 | コマンドライン（Ctrl+SHIFT+@） | `git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules`<br>`git add .gitmodules cursor_rules`<br>`git commit -m \"Add cursor_rules submodule\"`<br>`git push` | サブモジュールを追加して push<br>`.gitmodules` に cursor_rules あり（サブモジュール追加済） | プロジェクトに 共通ルールcursor_rules を組み込む。 | ー |
-| 準備 | **B-2** | 最新化用のテンプレ準備 | コマンドライン（Ctrl+SHIFT+@） | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1` | `.vscode/tasks.json` を作る（共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | B-1<br>（コピー更新）`powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1 -Force` |
+| 準備 | **B-2** | 最新化用のテンプレ準備 | コマンドライン（Ctrl+SHIFT+@） | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1`<br><br>（コピー更新時／上書きが必要な時）`powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1 -Force` | `.vscode/tasks.json` を作る（共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | B-1 |
 | 準備 | **B-3** | ルールの初回登録 | Cursor機能（Rules） | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>6 ファイル + alwaysApply: true | 6本の `.mdc` を Rules にパス登録（alwaysApply） | .mdc を自動適用して「共通ルール」をブレなく効かせる | ー |
 | いつでも | （ルール）共通不具合の直し方 | 迷わないための方針 | 共通不具合は共通側を直す | **共通側（d:\\pyscript\\cursor_rules）で修正→commit/push** → 各プロジェクトは **dev-start** で取り込む | **警告：目的を見失わない。** GitHub操作やルール整備に悩んで時間を溶かしがち。まず「何をやりたいか？」（=開発で結果を出す）に立ち返る。 | B-2（共通不具合のとき） |
 
@@ -25,6 +25,14 @@
 1. `ターミナル(T)` → `タスクの実行…` → **`dev-start (cursor_rules submodule)`** を選ぶ（サブモジュール=ルールを取得して最新化する）  
    - 一覧に **無い** → まず下の **B-2**（その前に **B-1** が未完了なら B-1 から）
 2. `Ctrl+Shift+G`（ソース管理）→ `cursor_rules (new commits)` が出ていれば **ステージ → コミット → 同期/プッシュ**（親が指す参照先を共有して、別PC/他人でも同じ状態にする）
+
+**タスクが「成功したか」の確認方法（この画面だけでOK）**
+
+- **確認①（ターミナル出力）**：エラーが赤字で出ていない／最後までメッセージが出て止まっている（`ParserError` や `TerminatorExpectedAtEndOfString` が出ていない）
+- **確認②（ソース管理）**：`Ctrl+Shift+G` で `cursor_rules (new commits)` が出たら「更新が入った」サイン（共有したいならステージ→コミット→同期/プッシュ）
+- **確認③（タスクがやりたいこと別）**：
+  - `dev-start` の確認：`cursor_rules` フォルダの中身が取れていて、`git submodule status` が表示される
+  - `setup-tasks-link` の確認：`.vscode/tasks.json` が作られ、`タスクの実行…` に `dev-start` が出る
 
 **タスクが無いときの代替（クリックできないときだけ・親リポジトリのルートで コマンド実行）**
 
