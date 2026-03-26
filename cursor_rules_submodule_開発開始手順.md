@@ -12,11 +12,11 @@
 
 | タイミング | 目的 | 手法 | 手順 | やること | 備考 | どこを見る |
 |---|---|---|---|---|---|---|
-| 毎回 | サブモジュール最新化 | Cursor機能 | ターミナル(T) → タスクの実行… → dev-start (cursor_rules submodule) 選択実行 | `dev-start` を実行 | サブモジュール（=ルール）を最新化。 | **A** |
+| 毎回 | サブモジュール最新化 | Cursor機能 タスク実行 | ターミナル(T) → タスクの実行… → dev-start (cursor_rules submodule) 選択実行 | dev-start（サブモジュールの中身を取得＋最新化）をclick実行 | サブモジュール（=ルール）を最新化。 | **A** |
 | 毎回 | GitHub更新 | Cursor_GitHub連携 | Ctrl+Shift+G（ソース管理）→ cursor_rules (new commits) が出ていれば ステージ → コミット → 同期/プッシュ | ソース管理で更新の有無確認 → ステージ → コミット → 同期/プッシュ | 最新サブモジュールをGitHubに反映。 | **A** |
-| 準備 | サブモジュールの作成 | コマンドライン | `git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules`<br>`git add .gitmodules cursor_rules`<br>`git commit -m \"Add cursor_rules submodule\"`<br>`git push` | サブモジュールを追加して push | プロジェクトに 共通ルールcursor_rules を組み込む。 | **B-1** |
-| 準備 | 最新化用のテンプレ準備 | コマンドライン | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1` | `.vscode/tasks.json` を作る（共通テンプレへのリンク作成） | `タスクの実行…` で `dev-start` をクリック実行できるようにする | **B-2** |
-| 準備 | ルールの初回登録 | Cursor機能 | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>6 ファイル + alwaysApply: true | 6本の `.mdc` を Rules にパス登録（alwaysApply） | .mdc を自動適用して「共通ルール」をブレなく効かせる | **B-3** |
+| 準備 | サブモジュールの作成 | コマンドライン Ctrl+SHIFT+@ | `git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules`<br>`git add .gitmodules cursor_rules`<br>`git commit -m \"Add cursor_rules submodule\"`<br>`git push` | サブモジュールを追加して push | プロジェクトに 共通ルールcursor_rules を組み込む。 | **B-1** |
+| 準備 | 最新化用のテンプレ準備 | コマンドライン Ctrl+SHIFT+@ | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1` | `.vscode/tasks.json` を作る（共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | **B-2** |
+| 準備 | ルールの初回登録 | Cursor機能 Rules | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>6 ファイル + alwaysApply: true | 6本の `.mdc` を Rules にパス登録（alwaysApply） | .mdc を自動適用して「共通ルール」をブレなく効かせる | **B-3** |
 
 ### A) 毎回（数秒）：開発に入る前の固定ルーティン
 
