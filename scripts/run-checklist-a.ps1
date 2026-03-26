@@ -25,6 +25,11 @@ function Read-TextAnyEncoding([string]$path) {
   }
 }
 
+function Read-Json([string]$path) {
+  $t = Read-TextAnyEncoding $path
+  return $t | ConvertFrom-Json
+}
+
 function Assert-Regex([string]$text, [string]$pattern, [string]$message) {
   if (-not [Regex]::IsMatch($text, $pattern, [System.Text.RegularExpressions.RegexOptions]::Multiline)) {
     Fail $message
@@ -93,46 +98,27 @@ foreach ($name in $requiredMdc) {
   Write-Host ("OK: " + $name)
 }
 
-Step "Check 6 mdc content (not only existence)"
+Step "Check 6 mdc content (SPEC based)"
+$specPath = Join-Path $cursorRules "spec\\checklist_a_requirements.json"
+if (-not (Test-Path -LiteralPath $specPath)) {
+  Fail ("Missing spec file: " + $specPath)
+}
+$spec = Read-Json $specPath
+
 foreach ($name in $requiredMdc) {
   $p = Join-Path $rulesDir $name
   $t = Read-TextAnyEncoding $p
 
-  Assert-Regex $t '^---\s*$' ("Invalid frontmatter start: " + $name)
-  if ($name -eq "markdown-common.mdc") {
-    Assert-Regex $t '^globs:\s*"\*\*/\*\.md"\s*$' ("Missing markdown globs: " + $name)
-    Assert-Regex $t '^alwaysApply:\s*false\s*$' ("markdown-common must be alwaysApply:false")
-  } else {
-    Assert-Regex $t '^alwaysApply:\s*true\s*$' ("alwaysApply:true missing: " + $name)
+  $req = $spec.mdc.$name
+  if ($null -eq $req) {
+    Fail ("Missing spec entry for: " + $name)
   }
 
-  switch ($name) {
-    "venv-only-common.mdc" {
-      Assert-Regex $t '\.venv' ("venv rule missing .venv mention")
-      Assert-Regex $t 'Checklist A|run: checklist A' ("venv rule missing Checklist A enforcement")
-    }
-    "errors-debug-unittest-common.mdc" {
-      Assert-Regex $t 'pytest' ("errors rule missing pytest command")
-      Assert-Regex $t 'unittest' ("errors rule missing unittest command")
-      Assert-Regex $t 'Checklist A|run: checklist A' ("errors rule missing Checklist A enforcement")
-    }
-    "post-modification-common.mdc" {
-      Assert-Regex $t 'README' ("post-modification missing README requirements")
-      Assert-Regex $t 'Checklist A|run: checklist A' ("post-modification missing Checklist A enforcement")
-    }
-    "gui-build-security-common.mdc" {
-      Assert-Regex $t '0\.0\.0\.0' ("gui/security rule missing bind restriction")
-      Assert-Regex $t 'Checklist A|run: checklist A' ("gui/security missing Checklist A enforcement")
-    }
-    "markdown-common.mdc" {
-      Assert-Regex $t 'check: markdown toc \(project\)' ("markdown rule missing check task")
-      Assert-Regex $t 'fix: markdown toc \(project\)' ("markdown rule missing fix task")
-      Assert-Regex $t 'Checklist A|run: checklist A' ("markdown rule missing Checklist A enforcement")
-    }
-    "update-management-common.mdc" {
-      Assert-Regex $t 'cursor_rules' ("update-management missing cursor_rules context")
-      Assert-Regex $t 'Checklist A|run: checklist A' ("update-management missing Checklist A enforcement")
-    }
+  foreach ($pat in $req.frontmatter_must_match) {
+    Assert-Regex $t $pat ("Spec failed (frontmatter): " + $name + " / " + $pat)
+  }
+  foreach ($pat in $req.body_must_match) {
+    Assert-Regex $t $pat ("Spec failed (body): " + $name + " / " + $pat)
   }
 
   Write-Host ("OK content: " + $name)

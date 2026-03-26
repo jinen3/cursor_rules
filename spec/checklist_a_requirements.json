@@ -1,0 +1,73 @@
+{
+  "mdc": {
+    "venv-only-common.mdc": {
+      "frontmatter_must_match": [
+        "^description:\\s*仮想環境・システムPython保護\\s*$",
+        "^alwaysApply:\\s*true\\s*$"
+      ],
+      "body_must_match": [
+        "\\.venv",
+        "システムPython",
+        "run: checklist A \\(all rules\\)"
+      ]
+    },
+    "errors-debug-unittest-common.mdc": {
+      "frontmatter_must_match": [
+        "^description:\\s*エラー対応・デバッグ・単体テスト・知見の追記先（3か所に追記）\\s*$",
+        "^alwaysApply:\\s*true\\s*$"
+      ],
+      "body_must_match": [
+        "pytest",
+        "unittest",
+        "run: checklist A \\(all rules\\)"
+      ]
+    },
+    "post-modification-common.mdc": {
+      "frontmatter_must_match": [
+        "^description:\\s*コード修正・機能追加後の必須手順（README・教材の更新）\\s*$",
+        "^alwaysApply:\\s*true\\s*$"
+      ],
+      "body_must_match": [
+        "README",
+        "textbook_01_overview_project\\.md",
+        "run: checklist A \\(all rules\\)"
+      ]
+    },
+    "gui-build-security-common.mdc": {
+      "frontmatter_must_match": [
+        "^description:\\s*GUI・ビルド・WEBセキュリティ\\s*$",
+        "^alwaysApply:\\s*true\\s*$"
+      ],
+      "body_must_match": [
+        "WEBアプリ セキュリティ要件",
+        "0\\.0\\.0\\.0",
+        "run: checklist A \\(all rules\\)"
+      ]
+    },
+    "markdown-common.mdc": {
+      "frontmatter_must_match": [
+        "^description:\\s*Markdown 全般の共通ルール（目次リンク・アンカー・プレビュー注記含む、全 \\.md に適用）\\s*$",
+        "^globs:\\s*\"\\*\\*/\\*\\.md\"\\s*$",
+        "^alwaysApply:\\s*false\\s*$"
+      ],
+      "body_must_match": [
+        "##\\s*目次",
+        "check: markdown toc \\(project\\)",
+        "fix: markdown toc \\(project\\)",
+        "run: checklist A \\(all rules\\)"
+      ]
+    },
+    "update-management-common.mdc": {
+      "frontmatter_must_match": [
+        "^description:\\s*共通ルール・共通教材とプロジェクト固有の更新場所を分けるルール\\s*$",
+        "^alwaysApply:\\s*true\\s*$"
+      ],
+      "body_must_match": [
+        "共通で更新するもの",
+        "commit および push",
+        "run: checklist A \\(all rules\\)"
+      ]
+    }
+  }
+}
+
