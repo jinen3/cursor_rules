@@ -1,7 +1,6 @@
 ﻿{
     "spec_version":  1,
     "source_of_truth":  "mdc-files",
-    "generated_utc":  "2026-03-26T17:13:36Z",
     "normalization":  "utf8 text, CRLF/LF normalized to LF, exactly one trailing LF",
     "mdc":  {
                 "venv-only-common.mdc":  {

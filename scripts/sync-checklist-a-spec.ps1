@@ -77,7 +77,6 @@ foreach ($name in $requiredMdc) {
 $out = [ordered]@{
   spec_version = 1
   source_of_truth = "mdc-files"
-  generated_utc = ([DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"))
   normalization = "utf8 text, CRLF/LF normalized to LF, exactly one trailing LF"
   mdc = $mdcMap
 }
