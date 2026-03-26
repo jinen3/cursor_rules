@@ -13,7 +13,7 @@
 | いつ | 章 | 目的 | 手法 | 手順 | やること | 備考 | 参考 |
 |---|---|---|---|---|---|---|---|
 | 毎回 | **A 1** | サブモジュール最新化 | Cursor機能（タスク実行） | ターミナル(T) → タスクの実行… → dev-start (cursor_rules submodule) 選択実行 | dev-start（サブモジュールの中身を取得＋最新化）をclick実行 | サブモジュール（=ルール）を最新化。 | B-2,B-1 |
-| 毎回 | **A 1（中身）** | サブモジュール取得＋更新（コマンド） | コマンドライン（Ctrl+SHIFT+@） | `git submodule update --init --recursive`（未取得/未初期化を解消）<br>`git submodule update --remote cursor_rules`（必要ならリモート最新へ更新） | サブモジュールを取得＋更新 | GithHubからサブモジュールの中身を取得して、更新(最新に) | ー |
+| 毎回 | **A 1（中身）** | サブモジュール取得＋更新（コマンド） | コマンドライン（Ctrl+SHIFT+@） | `git submodule update --init --recursive`（未取得/未初期化を解消）<br>`git submodule update --remote cursor_rules`（必要ならリモート最新へ更新）<br><br>（短縮コマンド）`git submodule update --init --remote --recursive cursor_rules` | サブモジュールを取得＋更新 | GithHubからサブモジュールの中身を取得して、更新(最新に)<br><br>（短縮コマンドのメリット）短い・コピペしやすい<br>（短縮コマンドのデメリット）何が起きたか分かりにくい（init/remote の切り分けがしづらい） | ー |
 | 毎回 | **A 2** | GitHub更新 | Cursor_GitHub連携（Ctrl+Shift+G） | Ctrl+Shift+G（ソース管理）→ cursor_rules (new commits) が出ていれば ステージ → コミット → 同期/プッシュ | ソース管理で更新の有無確認 → ステージ → コミット → 同期/プッシュ | 最新サブモジュールをGitHubに反映。 | ー |
 | 準備 | **B-1** | サブモジュールの作成 | コマンドライン（Ctrl+SHIFT+@） | `git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules`<br>`git add .gitmodules cursor_rules`<br>`git commit -m \"Add cursor_rules submodule\"`<br>`git push` | サブモジュールを追加して push<br>`.gitmodules` に cursor_rules あり（サブモジュール追加済） | プロジェクトに 共通ルールcursor_rules を組み込む。 | ー |
 | 準備 | **B-2** | 最新化用のテンプレ準備 | コマンドライン（Ctrl+SHIFT+@） | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1` | `.vscode/tasks.json` を作る（共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | B-1 |
