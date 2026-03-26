@@ -12,6 +12,25 @@ function Resolve-AbsPath([string]$path) {
   return (Resolve-Path -LiteralPath $path).Path
 }
 
+function Read-TextAnyEncoding([string]$path) {
+  $bytes = [System.IO.File]::ReadAllBytes($path)
+  if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+    return [System.Text.Encoding]::UTF8.GetString($bytes)
+  }
+  $utf8Strict = New-Object System.Text.UTF8Encoding($false, $true)
+  try {
+    return $utf8Strict.GetString($bytes)
+  } catch {
+    return [System.Text.Encoding]::GetEncoding(932).GetString($bytes)
+  }
+}
+
+function Assert-Regex([string]$text, [string]$pattern, [string]$message) {
+  if (-not [Regex]::IsMatch($text, $pattern, [System.Text.RegularExpressions.RegexOptions]::Multiline)) {
+    Fail $message
+  }
+}
+
 function Step([string]$msg) {
   Write-Host ""
   Write-Host ("== " + $msg + " ==")
@@ -19,23 +38,19 @@ function Step([string]$msg) {
 
 function Print-ChecklistA() {
   Write-Host ""
-  Write-Host "【Checklist A（統合チェック）】"
-  Write-Host "目的：依頼対応の『すり抜け』を潰す。チェックだけで完了扱いは禁止。失敗したら直して同じChecklist Aをもう一回回す。"
+  Write-Host "[Checklist A]"
+  Write-Host "Purpose: prevent skipped checks. Do not mark done without execution."
   Write-Host ""
-  Write-Host "1. cursor_rules（サブモジュール）が存在し、中身が取れている"
-  Write-Host "2. 必須の6本 .mdc が揃っている（.cursor/rules/）"
+  Write-Host "1. cursor_rules submodule exists and is fetched."
+  Write-Host "2. Required 6 .mdc files exist under .cursor/rules."
   Write-Host "   - venv-only-common.mdc"
   Write-Host "   - errors-debug-unittest-common.mdc"
   Write-Host "   - post-modification-common.mdc"
   Write-Host "   - gui-build-security-common.mdc"
   Write-Host "   - markdown-common.mdc"
   Write-Host "   - update-management-common.mdc"
-  Write-Host "3. Markdown目次ルール（全 .md）"
-  Write-Host "   - fix: 目次が無い/壊れている .md は自動で付与（.bak を作ってから）"
-  Write-Host "   - check: fix 後に再チェックして通す"
-  Write-Host "4. 単体テスト（プロジェクトに tests がある場合）"
-  Write-Host "   - .venv があり tests/ があるなら pytest→失敗時 unittest を実行して通す"
-  Write-Host "   - 無い場合は SKIP（ただし、テストが必要な修正なら tests を用意する）"
+  Write-Host "3. Markdown TOC rules for all .md files (fix then check)."
+  Write-Host "4. Unit tests (pytest/unittest) when .venv and tests/ exist."
   Write-Host ""
 }
 
@@ -76,6 +91,51 @@ foreach ($name in $requiredMdc) {
     Fail ("Missing mdc: " + $name)
   }
   Write-Host ("OK: " + $name)
+}
+
+Step "Check 6 mdc content (not only existence)"
+foreach ($name in $requiredMdc) {
+  $p = Join-Path $rulesDir $name
+  $t = Read-TextAnyEncoding $p
+
+  Assert-Regex $t '^---\s*$' ("Invalid frontmatter start: " + $name)
+  if ($name -eq "markdown-common.mdc") {
+    Assert-Regex $t '^globs:\s*"\*\*/\*\.md"\s*$' ("Missing markdown globs: " + $name)
+    Assert-Regex $t '^alwaysApply:\s*false\s*$' ("markdown-common must be alwaysApply:false")
+  } else {
+    Assert-Regex $t '^alwaysApply:\s*true\s*$' ("alwaysApply:true missing: " + $name)
+  }
+
+  switch ($name) {
+    "venv-only-common.mdc" {
+      Assert-Regex $t '\.venv' ("venv rule missing .venv mention")
+      Assert-Regex $t 'Checklist A|run: checklist A' ("venv rule missing Checklist A enforcement")
+    }
+    "errors-debug-unittest-common.mdc" {
+      Assert-Regex $t 'pytest' ("errors rule missing pytest command")
+      Assert-Regex $t 'unittest' ("errors rule missing unittest command")
+      Assert-Regex $t 'Checklist A|run: checklist A' ("errors rule missing Checklist A enforcement")
+    }
+    "post-modification-common.mdc" {
+      Assert-Regex $t 'README' ("post-modification missing README requirements")
+      Assert-Regex $t 'Checklist A|run: checklist A' ("post-modification missing Checklist A enforcement")
+    }
+    "gui-build-security-common.mdc" {
+      Assert-Regex $t '0\.0\.0\.0' ("gui/security rule missing bind restriction")
+      Assert-Regex $t 'Checklist A|run: checklist A' ("gui/security missing Checklist A enforcement")
+    }
+    "markdown-common.mdc" {
+      Assert-Regex $t 'check: markdown toc \(project\)' ("markdown rule missing check task")
+      Assert-Regex $t 'fix: markdown toc \(project\)' ("markdown rule missing fix task")
+      Assert-Regex $t 'Checklist A|run: checklist A' ("markdown rule missing Checklist A enforcement")
+    }
+    "update-management-common.mdc" {
+      Assert-Regex $t 'cursor_rules' ("update-management missing cursor_rules context")
+      Assert-Regex $t 'Checklist A|run: checklist A' ("update-management missing Checklist A enforcement")
+    }
+  }
+
+  Write-Host ("OK content: " + $name)
 }
 
 Step "Check markdown TOC (auto-fix then re-check)"
