@@ -164,7 +164,7 @@ alwaysApply: true
       "type": "toc_check_script_runs",
       "requiredWhen": "always",
       "covers": ["markdown-common.mdc"],
-      "coversReqs": ["md.toc_script_works"]
+      "coversReqs": ["md.toc_script_works", "md.toc_rule_enforced"]
     },
     {
       "id": "project-docs-minimum-present",
