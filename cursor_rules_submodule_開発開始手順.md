@@ -17,7 +17,7 @@
 | 毎回 | **A 2** | GitHub更新 | Cursor_GitHub連携（Ctrl+Shift+G） | Ctrl+Shift+G（ソース管理）→ cursor_rules (new commits) が出ていれば ステージ → コミット → 同期/プッシュ<br><br>（定型コミット文言／ルール最新化の共有）`Update cursor_rules submodule pointer (ルール最新化)` | ソース管理で更新の有無確認 → ステージ → コミット → 同期/プッシュ | 最新サブモジュールをGitHubに反映。 | ー |
 | 準備 | **B-1** | サブモジュールの作成 | コマンドライン（Ctrl+SHIFT+@） | `git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules`<br>`git add .gitmodules cursor_rules`<br>`git commit -m \"Add cursor_rules submodule\"`<br>`git push` | サブモジュールを追加して push<br>`.gitmodules` に cursor_rules あり（サブモジュール追加済） | プロジェクトに 共通ルールcursor_rules を組み込む。 | ー |
 | 準備 | **B-2** | 最新化用のテンプレ準備 | コマンドライン（Ctrl+SHIFT+@） | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1`<br><br>（コピー更新時／上書きが必要な時）`powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1 -Force` | `.vscode/tasks.json` を作る（タスク読み込み用の設定ファイル（テンプレ）。共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | （tasks.json がGit管理対象のとき）`chore: update tasks.json for dev-start task`<br>B-1 |
-| 準備 | **B-3** | ルールの初回登録 | Cursor機能（Rules） | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>6 ファイル + alwaysApply: true<br><br>**【重要】RulesのDeleteは .mdc 実ファイル削除になることがある**ため、外したい時は **`Agent decides when to apply`** に切り替える（`git status` が `deleted` なら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules`） | 6本の `.mdc` を Rules にパス登録（alwaysApply） | .mdc を自動適用して「共通ルール」をブレなく効かせる | ー |
+| 準備 | **B-3** | ルールの初回登録 | Cursor機能（Rules） | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>6 ファイル + alwaysApply: true<br><br>**【重要】RulesのDeleteは .mdc 実ファイル削除になることがある**ため、外したい時は **`Agent decides when to apply`** に切り替える（`git status` が `deleted` なら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules` ／特定ファイルなら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules/venv-only-common.mdc`） | 6本の `.mdc` を Rules にパス登録（alwaysApply） | .mdc を自動適用して「共通ルール」をブレなく効かせる | ー |
 | いつでも | （ルール）共通不具合の直し方 | 迷わないための方針 | 共通不具合は共通側を直す | **共通側（d:\\pyscript\\cursor_rules）で修正→commit/push** → 各プロジェクトは **dev-start** で取り込む | **警告：目的を見失わない。** GitHub操作やルール整備に悩んで時間を溶かしがち。まず「何をやりたいか？」（=開発で結果を出す）に立ち返る。 | B-2（共通不具合のとき） |
 
 ### A) 毎回（数秒）：開発に入る前の固定ルーティン
@@ -121,7 +121,11 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
   - もし誤って消えて `git status` で `deleted: .cursor/rules/xxx.mdc` が出たら、サブモジュール側で復旧する：
 
 ```powershell
+# 例1: フォルダ配下をまとめて復旧（どれが消えたか分からないときに便利）
 git -C "<プロジェクトルート>\cursor_rules" restore .cursor/rules
+
+# 例2: 特定ファイルだけ復旧（今回のように1本だけ消えたとき）
+git -C "<プロジェクトルート>\cursor_rules" restore .cursor/rules/venv-only-common.mdc
 ```
 
 1. Cursor で **Settings（設定）** → **Rules**（または **Cursor Settings → Rules**）を開く  
