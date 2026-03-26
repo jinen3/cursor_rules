@@ -86,6 +86,11 @@ alwaysApply: true
       "requiredWhen": "always"
     },
     {
+      "id": "project-checklist-task-wired-correctly",
+      "type": "project_checklist_task_wired",
+      "requiredWhen": "always"
+    },
+    {
       "id": "project-tasks-use-cursor-rules-scripts",
       "type": "project_tasks_use_cursor_rules_scripts",
       "requiredWhen": "always"

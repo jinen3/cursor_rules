@@ -299,6 +299,27 @@ if ($runtimeChecks.Count -gt 0) {
         }
         Write-Host ("OK runtime: " + $id)
       }
+      "project_checklist_task_wired" {
+        if (-not (Test-Path -LiteralPath $projectTasksPath)) {
+          Fail ("runtime check failed: " + $id + " (.vscode/tasks.json missing)")
+        }
+        $projTasks = Read-Json $projectTasksPath
+        $task = $projTasks.tasks | Where-Object { $_.label -eq "run: checklist A (all rules)" } | Select-Object -First 1
+        if ($null -eq $task) {
+          Fail ("runtime check failed: " + $id + " (task label not found)")
+        }
+        if ([string]$task.command -ne "powershell") {
+          Fail ("runtime check failed: " + $id + " (task command is not powershell)")
+        }
+        $argsText = (@($task.args) -join " ")
+        if (-not ($argsText -match [Regex]::Escape("cursor_rules\\scripts\\run-checklist-a.ps1"))) {
+          Fail ("runtime check failed: " + $id + " (run-checklist-a.ps1 not wired)")
+        }
+        if (-not ($argsText -match [Regex]::Escape("-ProjectRoot"))) {
+          Fail ("runtime check failed: " + $id + " (-ProjectRoot missing)")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
       "project_tasks_use_cursor_rules_scripts" {
         if (-not (Test-Path -LiteralPath $projectTasksPath)) {
           Fail ("runtime check failed: " + $id + " (.vscode/tasks.json missing)")
