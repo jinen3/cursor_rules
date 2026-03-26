@@ -42,23 +42,23 @@ if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot ".git"))) {
 
 Set-Location -LiteralPath $ProjectRoot
 
-Write-Host "== [1/2] submodule init (取得・未初期化の解消) ==" -ForegroundColor Cyan
+Write-Host "== [1/2] submodule init (fetch/init) ==" -ForegroundColor Cyan
 git submodule update --init --recursive
 
 $gitmodules = Join-Path $ProjectRoot ".gitmodules"
 if (-not (Test-Path -LiteralPath $gitmodules)) {
-    Write-Warning ".gitmodules がありません。先に Pattern① で git submodule add を実行してください。"
+    Write-Warning ".gitmodules not found. Run git submodule add first."
     exit 1
 }
 
 $subStatus = git submodule status $SubmodulePath 2>$null
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($subStatus)) {
-    Write-Warning "サブモジュール '$SubmodulePath' が見つかりません。.gitmodules の path を確認してください。"
+    Write-Warning ("Submodule not found: {0}. Check .gitmodules path." -f $SubmodulePath)
     exit 1
 }
 
 if ($SkipRemote) {
-    Write-Host "SkipRemote 指定のため、リモート最新への更新は行いません。" -ForegroundColor Yellow
+    Write-Host "SkipRemote specified: remote update is skipped." -ForegroundColor Yellow
 } else {
     Write-Host "== [2/2] submodule update --remote ($SubmodulePath) ==" -ForegroundColor Cyan
     git submodule update --remote $SubmodulePath
@@ -67,4 +67,4 @@ if ($SkipRemote) {
 Write-Host "`n== submodule status ==" -ForegroundColor Green
 git submodule status
 
-Write-Host "`n親リポジトリで cursor_rules の指すコミットが変わった場合は、git status で確認し、チーム方針に従いコミットしてください。" -ForegroundColor DarkGray
+Write-Host "`nIf the parent repo shows 'cursor_rules (new commits)', commit/push the submodule pointer if you want to share it." -ForegroundColor DarkGray
