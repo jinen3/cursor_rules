@@ -93,6 +93,25 @@
         "reveal": "always",
         "panel": "shared"
       }
+    },
+    {
+      "label": "run: checklist A (all rules)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\\\cursor_rules\\\\scripts\\\\run-checklist-a.ps1",
+        "-ProjectRoot",
+        "${workspaceFolder}"
+      ],
+      "problemMatcher": [],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
     }
   ]
 }
