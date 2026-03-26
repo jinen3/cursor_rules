@@ -334,6 +334,16 @@ if ($runtimeChecks.Count -gt 0) {
         }
         Write-Host ("OK runtime: " + $id)
       }
+      "submodule_clean_worktree" {
+        $subStatus = (git -C $cursorRules status --porcelain).Trim()
+        if ($LASTEXITCODE -ne 0) {
+          Fail ("runtime check failed: " + $id + " (cannot read submodule status)")
+        }
+        if (-not [string]::IsNullOrWhiteSpace($subStatus)) {
+          Fail ("runtime check failed: " + $id + " (submodule has local changes)")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
       "no_project_rule_copies" {
         $projectRulesDir = Join-Path $root ".cursor\\rules"
         if (Test-Path -LiteralPath $projectRulesDir) {

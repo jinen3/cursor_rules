@@ -96,6 +96,11 @@ alwaysApply: true
       "requiredWhen": "always"
     },
     {
+      "id": "cursor-rules-submodule-clean",
+      "type": "submodule_clean_worktree",
+      "requiredWhen": "always"
+    },
+    {
       "id": "no-copied-common-mdc-in-project",
       "type": "no_project_rule_copies",
       "requiredWhen": "always"
