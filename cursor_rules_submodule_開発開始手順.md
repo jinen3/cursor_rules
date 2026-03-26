@@ -68,6 +68,17 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 - シンボリックリンクに失敗した場合はコピーに **フォールバック（代替）**し、`.vscode/tasks_copy.txt` が目印になることがある。  
 - 実行後、もう一度 `タスクの実行…` を開き直す。
 
+**（ルール）全プロジェクト共通の不具合は「共通側」で直す**
+
+`setup-tasks-link.ps1` が PowerShell の **パースエラー**（例：`TerminatorExpectedAtEndOfString` など）で落ちる場合、スクリプト自体の不具合なので **どのプロジェクトでも再発**します。
+この場合は、プロジェクト内のサブモジュールをその場しのぎで直すのではなく、**共通側（`d:\pyscript\cursor_rules`）で修正 → commit/push** し、各プロジェクトは **サブモジュール更新で取り込む**のが最短です。
+
+**最短復旧手順（共通不具合のとき）**
+
+1. 共通側（`d:\pyscript\cursor_rules`）で `scripts/setup-tasks-link.ps1` を修正し、GitHub に push
+2. 各プロジェクト側で `dev-start` を実行して、サブモジュール `cursor_rules` を最新に更新
+3. そのプロジェクトのルートで、もう一度 B-2 のコマンドを実行する
+
 #### B-3. Rules に 6 本の `.mdc` が未登録（パス指定の手動登録が必要）
 
 **`.mdc` がディスク上にあっても、Cursor は自動ではルールに入れない。** 次を行う。
