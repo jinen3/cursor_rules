@@ -61,7 +61,8 @@ alwaysApply: true
     "enforceSpecSync": true,
     "runMarkdownTocFixAndCheck": true,
     "runUnitTestsWhenAvailable": true,
-    "enforceCoverageMap": true
+    "enforceCoverageMap": true,
+    "enforceRequirementMap": true
   },
   "coverageTargets": [
     "venv-only-common.mdc",
@@ -71,98 +72,141 @@ alwaysApply: true
     "markdown-common.mdc",
     "update-management-common.mdc"
   ],
+  "requirementIds": {
+    "venv-only-common.mdc": [
+      "venv.use_venv_python",
+      "venv.block_system_python"
+    ],
+    "errors-debug-unittest-common.mdc": [
+      "err.run_tests",
+      "err.keep_success_knowledge_only"
+    ],
+    "post-modification-common.mdc": [
+      "post.update_readme_or_docs",
+      "post.finish_with_report"
+    ],
+    "gui-build-security-common.mdc": [
+      "sec.no_open_bind_0_0_0_0",
+      "sec.use_safe_runtime_context"
+    ],
+    "markdown-common.mdc": [
+      "md.toc_rule_enforced",
+      "md.toc_script_works"
+    ],
+    "update-management-common.mdc": [
+      "upd.submodule_is_latest",
+      "upd.no_copied_common_mdc",
+      "upd.checklist_task_wired",
+      "upd.checklist_no_skiptests"
+    ]
+  },
   "runtimeChecks": [
     {
       "id": "venv-python-prefix",
       "type": "venv_python_prefix_contains",
       "expectedSubstring": ".venv",
       "requiredWhen": "venv_exists",
-      "covers": ["venv-only-common.mdc"]
+      "covers": ["venv-only-common.mdc"],
+      "coversReqs": ["venv.use_venv_python"]
     },
     {
       "id": "venv-pytest-or-unittest",
       "type": "venv_test_runner",
       "requiredWhen": "venv_and_tests_exist",
-      "covers": ["errors-debug-unittest-common.mdc"]
+      "covers": ["errors-debug-unittest-common.mdc"],
+      "coversReqs": ["err.run_tests"]
     },
     {
       "id": "venv-pip-path",
       "type": "venv_pip_path_contains",
       "expectedSubstring": ".venv",
       "requiredWhen": "venv_exists",
-      "covers": ["venv-only-common.mdc"]
+      "covers": ["venv-only-common.mdc"],
+      "coversReqs": ["venv.block_system_python"]
     },
     {
       "id": "project-tasks-updated",
       "type": "project_tasks_has_labels",
       "requiredWhen": "always",
-      "covers": ["update-management-common.mdc"]
+      "covers": ["update-management-common.mdc"],
+      "coversReqs": ["upd.checklist_task_wired"]
     },
     {
       "id": "project-checklist-task-wired-correctly",
       "type": "project_checklist_task_wired",
       "requiredWhen": "always",
-      "covers": ["update-management-common.mdc"]
+      "covers": ["update-management-common.mdc"],
+      "coversReqs": ["upd.checklist_task_wired"]
     },
     {
       "id": "project-checklist-task-no-skiptests",
       "type": "project_checklist_task_no_skiptests",
       "requiredWhen": "always",
-      "covers": ["errors-debug-unittest-common.mdc", "post-modification-common.mdc", "update-management-common.mdc"]
+      "covers": ["errors-debug-unittest-common.mdc", "post-modification-common.mdc", "update-management-common.mdc"],
+      "coversReqs": ["err.keep_success_knowledge_only", "post.finish_with_report", "upd.checklist_no_skiptests"]
     },
     {
       "id": "project-has-cursor-rules-submodule-entry",
       "type": "project_has_cursor_rules_submodule_entry",
       "requiredWhen": "always",
-      "covers": ["update-management-common.mdc"]
+      "covers": ["update-management-common.mdc"],
+      "coversReqs": ["upd.submodule_is_latest"]
     },
     {
       "id": "sync-spec-script-runs",
       "type": "sync_spec_script_runs",
       "requiredWhen": "always",
-      "covers": ["update-management-common.mdc"]
+      "covers": ["update-management-common.mdc"],
+      "coversReqs": ["upd.submodule_is_latest"]
     },
     {
       "id": "toc-check-script-runs",
       "type": "toc_check_script_runs",
       "requiredWhen": "always",
-      "covers": ["markdown-common.mdc"]
+      "covers": ["markdown-common.mdc"],
+      "coversReqs": ["md.toc_script_works"]
     },
     {
       "id": "project-docs-minimum-present",
       "type": "project_docs_minimum_present",
       "requiredWhen": "always",
-      "covers": ["post-modification-common.mdc"]
+      "covers": ["post-modification-common.mdc"],
+      "coversReqs": ["post.update_readme_or_docs"]
     },
     {
       "id": "project-no-0-0-0-0-bind",
       "type": "project_no_open_bind",
       "requiredWhen": "always",
-      "covers": ["gui-build-security-common.mdc"]
+      "covers": ["gui-build-security-common.mdc"],
+      "coversReqs": ["sec.no_open_bind_0_0_0_0"]
     },
     {
       "id": "project-tasks-use-cursor-rules-scripts",
       "type": "project_tasks_use_cursor_rules_scripts",
       "requiredWhen": "always",
-      "covers": ["update-management-common.mdc"]
+      "covers": ["update-management-common.mdc"],
+      "coversReqs": ["upd.checklist_task_wired"]
     },
     {
       "id": "cursor-rules-submodule-at-origin-main",
       "type": "submodule_at_origin_main",
       "requiredWhen": "always",
-      "covers": ["update-management-common.mdc"]
+      "covers": ["update-management-common.mdc"],
+      "coversReqs": ["upd.submodule_is_latest"]
     },
     {
       "id": "cursor-rules-submodule-clean",
       "type": "submodule_clean_worktree",
       "requiredWhen": "always",
-      "covers": ["update-management-common.mdc"]
+      "covers": ["update-management-common.mdc"],
+      "coversReqs": ["upd.submodule_is_latest"]
     },
     {
       "id": "no-copied-common-mdc-in-project",
       "type": "no_project_rule_copies",
       "requiredWhen": "always",
-      "covers": ["update-management-common.mdc"]
+      "covers": ["update-management-common.mdc"],
+      "coversReqs": ["upd.no_copied_common_mdc"]
     }
   ]
 }

@@ -132,6 +132,10 @@ $coverageTargets = @()
 if ($policy.PSObject.Properties.Name -contains "coverageTargets") {
   $coverageTargets = @($policy.coverageTargets)
 }
+$requirementIdsMap = $null
+if ($policy.PSObject.Properties.Name -contains "requirementIds") {
+  $requirementIdsMap = $policy.requirementIds
+}
 $runtimeChecks = @()
 if ($policy.PSObject.Properties.Name -contains "runtimeChecks") {
   foreach ($rc in @($policy.runtimeChecks)) {
@@ -148,6 +152,7 @@ if ($requiredMdc.Count -eq 0) { Fail "Policy requiredMdc is empty" }
 if ($requiredScripts.Count -eq 0) { Fail "Policy requiredScripts is empty" }
 if ($requiredTaskLabels.Count -eq 0) { Fail "Policy requiredTaskLabels is empty" }
 if ($checkFlags.enforceCoverageMap -and $coverageTargets.Count -eq 0) { Fail "Policy coverageTargets is empty" }
+if ($checkFlags.enforceRequirementMap -and $null -eq $requirementIdsMap) { Fail "Policy requirementIds is missing" }
 
 Step "Check required 6 mdc files"
 foreach ($name in $requiredMdc) {
@@ -246,6 +251,34 @@ if ($checkFlags.enforceCoverageMap) {
       Fail ("Coverage gap: no runtime check covers " + $target)
     }
     Write-Host ("OK coverage: " + $target)
+  }
+}
+
+if ($checkFlags.enforceRequirementMap) {
+  Step "Check requirement map (requirement id -> runtime checks)"
+  $allReqIds = New-Object System.Collections.Generic.HashSet[string]
+  foreach ($mdcName in $requirementIdsMap.PSObject.Properties.Name) {
+    foreach ($rid in @($requirementIdsMap.$mdcName)) {
+      if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
+        [void]$allReqIds.Add([string]$rid)
+      }
+    }
+  }
+  $coveredReqIds = New-Object System.Collections.Generic.HashSet[string]
+  foreach ($rc in $runtimeChecks) {
+    if ($rc.PSObject.Properties.Name -contains "coversReqs") {
+      foreach ($rid in @($rc.coversReqs)) {
+        if (-not [string]::IsNullOrWhiteSpace([string]$rid)) {
+          [void]$coveredReqIds.Add([string]$rid)
+        }
+      }
+    }
+  }
+  foreach ($rid in $allReqIds) {
+    if (-not $coveredReqIds.Contains($rid)) {
+      Fail ("Requirement coverage gap: " + $rid)
+    }
+    Write-Host ("OK requirement: " + $rid)
   }
 }
 
