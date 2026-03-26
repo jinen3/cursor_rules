@@ -3,7 +3,10 @@ param(
   [string]$ProjectRoot = ".",
 
   [Parameter(Mandatory = $false)]
-  [switch]$SkipTests
+  [switch]$SkipTests,
+
+  [Parameter(Mandatory = $false)]
+  [switch]$ManualReviewOk
 )
 
 $ErrorActionPreference = "Stop"
@@ -669,6 +672,9 @@ if ($manualRequirementIds.Count -gt 0) {
   if ($lines.Count -gt 0) {
     $popupText = "Manual review required before final sign-off:`r`n`r`n" + ($lines -join "`r`n")
     Show-InfoPopup "Checklist A Manual Review" $popupText
+  }
+  if (-not $ManualReviewOk) {
+    Fail "Manual review required. After human confirmation, rerun with -ManualReviewOk."
   }
 }
 

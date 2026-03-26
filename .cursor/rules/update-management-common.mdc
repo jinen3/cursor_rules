@@ -106,7 +106,7 @@ alwaysApply: true
     "sec.use_safe_runtime_context"
   ],
   "manualCheckGuidance": {
-    "sec.use_safe_runtime_context": "WEBアプリが localhost / 192.168.x.x にのみバインドされ、0.0.0.0 で公開されていないことを実際の起動設定で確認する。"
+    "sec.use_safe_runtime_context": "起動設定で 0.0.0.0 を使わず、localhost または 192.168.x.x だけになっていることを確認する。"
   },
   "runtimeChecks": [
     {
