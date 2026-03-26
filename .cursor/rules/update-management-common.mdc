@@ -63,7 +63,8 @@ alwaysApply: true
     "runUnitTestsWhenAvailable": true,
     "enforceCoverageMap": true,
     "enforceRequirementMap": true,
-    "enforceRequirementClassification": true
+    "enforceRequirementClassification": true,
+    "requireTestEnvironment": true
   },
   "coverageTargets": [
     "venv-only-common.mdc",

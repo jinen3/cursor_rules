@@ -152,6 +152,15 @@ if ($policy.PSObject.Properties.Name -contains "runtimeChecks") {
 $venvPython = Join-Path $root ".venv\\Scripts\\python.exe"
 $testsDir = Join-Path $root "tests"
 
+if ($checkFlags.requireTestEnvironment) {
+  if (-not (Test-Path -LiteralPath $venvPython)) {
+    Fail "Strict mode: .venv python is required."
+  }
+  if (-not (Test-Path -LiteralPath $testsDir)) {
+    Fail "Strict mode: tests directory is required."
+  }
+}
+
 if ($requiredMdc.Count -eq 0) { Fail "Policy requiredMdc is empty" }
 if ($requiredScripts.Count -eq 0) { Fail "Policy requiredScripts is empty" }
 if ($requiredTaskLabels.Count -eq 0) { Fail "Policy requiredTaskLabels is empty" }
@@ -591,6 +600,9 @@ if ($runtimeChecks.Count -gt 0) {
 if (-not $checkFlags.runUnitTestsWhenAvailable) {
   Step "Skip tests (policy disabled)"
 } elseif ($SkipTests) {
+  if ($checkFlags.requireTestEnvironment) {
+    Fail "Strict mode: -SkipTests is not allowed."
+  }
   Step "Skip tests (requested)"
 } else {
   Step "Run unit tests with .venv python if available"
