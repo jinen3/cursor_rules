@@ -178,7 +178,7 @@ alwaysApply: true
       "type": "project_no_open_bind",
       "requiredWhen": "always",
       "covers": ["gui-build-security-common.mdc"],
-      "coversReqs": ["sec.no_open_bind_0_0_0_0"]
+      "coversReqs": ["sec.no_open_bind_0_0_0_0", "sec.use_safe_runtime_context"]
     },
     {
       "id": "project-tasks-use-cursor-rules-scripts",
