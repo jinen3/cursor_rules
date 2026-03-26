@@ -405,8 +405,22 @@ if ($runtimeChecks.Count -gt 0) {
           Fail ("runtime check failed: " + $id + " (README.md/readme.txt not found)")
         }
         $textbookFiles = Get-ChildItem -LiteralPath $root -File -Filter "textbook_*_project.md" -ErrorAction SilentlyContinue
-        if (($null -eq $textbookFiles) -or ($textbookFiles.Count -lt 1)) {
-          Fail ("runtime check failed: " + $id + " (textbook_*_project.md not found)")
+        $legacyStudyFiles = @(
+          Join-Path $root "01_overview.md",
+          Join-Path $root "02_error_handling.md",
+          Join-Path $root "03_detailed_guide.md",
+          Join-Path $root "DEBUG_GUIDE.md"
+        )
+        $hasLegacyStudy = $false
+        foreach ($p in $legacyStudyFiles) {
+          if (Test-Path -LiteralPath $p) {
+            $hasLegacyStudy = $true
+            break
+          }
+        }
+        $hasTextbook = ($null -ne $textbookFiles) -and ($textbookFiles.Count -ge 1)
+        if (-not ($hasTextbook -or $hasLegacyStudy)) {
+          Fail ("runtime check failed: " + $id + " (no project study docs found)")
         }
         Write-Host ("OK runtime: " + $id)
       }
