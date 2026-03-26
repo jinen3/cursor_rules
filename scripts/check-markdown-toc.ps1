@@ -87,7 +87,8 @@ function Get-HeadingLines([string[]]$lines) {
 
 function Has-TocSection([string[]]$lines) {
   foreach ($line in $lines) {
-    if ($line -match '^\s*##\s*目次\s*$') {
+    $clean = $line -replace [char]0xFEFF, ''
+    if ($clean -match '^\s*##\s*目次\s*$') {
       return $true
     }
   }
@@ -106,7 +107,8 @@ function Has-AnyHtmlAnchor([string[]]$lines) {
 function Get-HeadingIndices([string[]]$lines) {
   $idx = @()
   for ($i = 0; $i -lt $lines.Length; $i++) {
-    if ($lines[$i] -match '^\s{0,3}#{1,6}\s+\S') {
+    $clean = $lines[$i] -replace [char]0xFEFF, ''
+    if ($clean -match '^\s{0,3}#{1,6}\s+\S') {
       $idx += $i
     }
   }
@@ -125,21 +127,22 @@ function Build-TocAndAnchors([string[]]$lines) {
   $sec = 0
   for ($j = 0; $j -lt $lines.Length; $j++) {
     $line = $lines[$j]
-    if ($line -match '^\s{0,3}#{1,6}\s+\S') {
+    $clean = $line -replace [char]0xFEFF, ''
+    if ($clean -match '^\s{0,3}#{1,6}\s+\S') {
       $sec++
       $anchor = "sec" + $sec
-      $level = ([Regex]::Match($line, '^\s{0,3}(#{1,6})').Groups[1].Value).Length
+      $level = ([Regex]::Match($clean, '^\s{0,3}(#{1,6})').Groups[1].Value).Length
       $indent = ""
       if ($level -gt 2) {
         $spaces = ($level - 2) * 2
         $indent = (" " * $spaces)
       }
-      $title = ($line -replace '^\s{0,3}#{1,6}\s+', '').Trim()
+      $title = ($clean -replace '^\s{0,3}#{1,6}\s+', '').Trim()
       $tocLinks.Add($indent + "- [$title](#$anchor)") | Out-Null
       $injected.Add("<a id=""$anchor""></a>") | Out-Null
-      $injected.Add($line) | Out-Null
+      $injected.Add($clean) | Out-Null
     } else {
-      $injected.Add($line) | Out-Null
+      $injected.Add($clean) | Out-Null
     }
   }
 
@@ -152,9 +155,9 @@ function Build-TocAndAnchors([string[]]$lines) {
   $header.Add("") | Out-Null
 
   $start = 0
-  if ($lines.Length -gt 0 -and $lines[0] -match '^\s*#\s+\S') {
+  if ($lines.Length -gt 0 -and (($lines[0] -replace [char]0xFEFF, '') -match '^\s*#\s+\S')) {
     $start = 1
-    if ($lines.Length -gt 1 -and $lines[1].Trim() -eq "") { $start = 2 }
+    if ($lines.Length -gt 1 -and (($lines[1] -replace [char]0xFEFF, '').Trim() -eq "")) { $start = 2 }
   }
 
   $result = New-Object System.Collections.Generic.List[string]
