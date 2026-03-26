@@ -27,13 +27,25 @@ function Read-TextAnyEncoding([string]$path) {
 
 function Read-Json([string]$path) {
   $t = Read-TextAnyEncoding $path
+  $t = $t.TrimStart([char]0xFEFF)
   return $t | ConvertFrom-Json
 }
 
-function Assert-Regex([string]$text, [string]$pattern, [string]$message) {
-  if (-not [Regex]::IsMatch($text, $pattern, [System.Text.RegularExpressions.RegexOptions]::Multiline)) {
-    Fail $message
+function Normalize-TextForSpec([string]$text) {
+  $norm = $text -replace "`r`n", "`n" -replace "`r", "`n"
+  $norm = $norm.TrimEnd("`n")
+  return $norm + "`n"
+}
+
+function Get-Sha256Hex([string]$text) {
+  $bytes = [System.Text.Encoding]::UTF8.GetBytes($text)
+  $sha = [System.Security.Cryptography.SHA256]::Create()
+  try {
+    $hash = $sha.ComputeHash($bytes)
+  } finally {
+    $sha.Dispose()
   }
+  return ([System.BitConverter]::ToString($hash) -replace "-", "").ToLowerInvariant()
 }
 
 function Step([string]$msg) {
@@ -98,7 +110,7 @@ foreach ($name in $requiredMdc) {
   Write-Host ("OK: " + $name)
 }
 
-Step "Check 6 mdc content (SPEC based)"
+Step "Check 6 mdc content (full-content hash from SPEC)"
 $specPath = Join-Path $cursorRules "spec\\checklist_a_requirements.json"
 if (-not (Test-Path -LiteralPath $specPath)) {
   Fail ("Missing spec file: " + $specPath)
@@ -114,11 +126,14 @@ foreach ($name in $requiredMdc) {
     Fail ("Missing spec entry for: " + $name)
   }
 
-  foreach ($pat in $req.frontmatter_must_match) {
-    Assert-Regex $t $pat ("Spec failed (frontmatter): " + $name + " / " + $pat)
+  $normalized = Normalize-TextForSpec $t
+  $actual = Get-Sha256Hex $normalized
+  $expected = [string]$req.sha256
+  if ([string]::IsNullOrWhiteSpace($expected)) {
+    Fail ("Missing spec sha256 for: " + $name)
   }
-  foreach ($pat in $req.body_must_match) {
-    Assert-Regex $t $pat ("Spec failed (body): " + $name + " / " + $pat)
+  if ($actual -ne $expected) {
+    Fail ("Spec mismatch (mdc changed but spec not synced): " + $name)
   }
 
   Write-Host ("OK content: " + $name)

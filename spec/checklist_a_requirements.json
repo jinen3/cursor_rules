@@ -1,73 +1,32 @@
-{
-  "mdc": {
-    "venv-only-common.mdc": {
-      "frontmatter_must_match": [
-        "^description:\\s*仮想環境・システムPython保護\\s*$",
-        "^alwaysApply:\\s*true\\s*$"
-      ],
-      "body_must_match": [
-        "\\.venv",
-        "システムPython",
-        "run: checklist A \\(all rules\\)"
-      ]
-    },
-    "errors-debug-unittest-common.mdc": {
-      "frontmatter_must_match": [
-        "^description:\\s*エラー対応・デバッグ・単体テスト・知見の追記先（3か所に追記）\\s*$",
-        "^alwaysApply:\\s*true\\s*$"
-      ],
-      "body_must_match": [
-        "pytest",
-        "unittest",
-        "run: checklist A \\(all rules\\)"
-      ]
-    },
-    "post-modification-common.mdc": {
-      "frontmatter_must_match": [
-        "^description:\\s*コード修正・機能追加後の必須手順（README・教材の更新）\\s*$",
-        "^alwaysApply:\\s*true\\s*$"
-      ],
-      "body_must_match": [
-        "README",
-        "textbook_01_overview_project\\.md",
-        "run: checklist A \\(all rules\\)"
-      ]
-    },
-    "gui-build-security-common.mdc": {
-      "frontmatter_must_match": [
-        "^description:\\s*GUI・ビルド・WEBセキュリティ\\s*$",
-        "^alwaysApply:\\s*true\\s*$"
-      ],
-      "body_must_match": [
-        "WEBアプリ セキュリティ要件",
-        "0\\.0\\.0\\.0",
-        "run: checklist A \\(all rules\\)"
-      ]
-    },
-    "markdown-common.mdc": {
-      "frontmatter_must_match": [
-        "^description:\\s*Markdown 全般の共通ルール（目次リンク・アンカー・プレビュー注記含む、全 \\.md に適用）\\s*$",
-        "^globs:\\s*\"\\*\\*/\\*\\.md\"\\s*$",
-        "^alwaysApply:\\s*false\\s*$"
-      ],
-      "body_must_match": [
-        "##\\s*目次",
-        "check: markdown toc \\(project\\)",
-        "fix: markdown toc \\(project\\)",
-        "run: checklist A \\(all rules\\)"
-      ]
-    },
-    "update-management-common.mdc": {
-      "frontmatter_must_match": [
-        "^description:\\s*共通ルール・共通教材とプロジェクト固有の更新場所を分けるルール\\s*$",
-        "^alwaysApply:\\s*true\\s*$"
-      ],
-      "body_must_match": [
-        "共通で更新するもの",
-        "commit および push",
-        "run: checklist A \\(all rules\\)"
-      ]
-    }
-  }
+﻿{
+    "spec_version":  1,
+    "source_of_truth":  "mdc-files",
+    "generated_utc":  "2026-03-26T16:31:12Z",
+    "normalization":  "utf8 text, CRLF/LF normalized to LF, exactly one trailing LF",
+    "mdc":  {
+                "venv-only-common.mdc":  {
+                                             "sha256":  "b867767e56b90daaf7887383d3b6ce77f56f459b28135990c4acc5960682d2c5",
+                                             "bytes_utf8_normalized":  1850
+                                         },
+                "errors-debug-unittest-common.mdc":  {
+                                                         "sha256":  "ed5e6f15342660ac56ffcf1302b91b1e0d468583c3fa31d7af7a0b16f13b4c2a",
+                                                         "bytes_utf8_normalized":  7243
+                                                     },
+                "post-modification-common.mdc":  {
+                                                     "sha256":  "c6e92699f7a25b0a2b89faf60a73376167b05987d733a7dfe46056a1b1100d19",
+                                                     "bytes_utf8_normalized":  3179
+                                                 },
+                "gui-build-security-common.mdc":  {
+                                                      "sha256":  "5fa27307833003af9599cb4cf9b40a17d19c71996901a08b6423a5643c8b27ec",
+                                                      "bytes_utf8_normalized":  2429
+                                                  },
+                "markdown-common.mdc":  {
+                                            "sha256":  "92110b075394c920b27efdba4350ecc28e7218eef16514a27f5012545296328c",
+                                            "bytes_utf8_normalized":  3644
+                                        },
+                "update-management-common.mdc":  {
+                                                     "sha256":  "0694c94366c3b958951ba2e5a9c8a9352979e4bdae2db77b1506090f4ec60b53",
+                                                     "bytes_utf8_normalized":  7003
+                                                 }
+            }
 }
-

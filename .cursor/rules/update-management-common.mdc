@@ -27,5 +27,7 @@ alwaysApply: true
 
 - **共通側（cursor_rules）を編集したら必ず機械チェック：** `.mdc` / スクリプト / 手順書 / テンプレを更新したら、commit/push の前に **`check: cursor_rules sanity`** を実行して「6本の整合」と「Markdown目次チェック」を通す（通らない＝直す）。
 - **Checklist A を標準化：** 6本の `.mdc` の必須確認を 1 つに統合した **Checklist A** を使う。どの依頼でも、完了報告の前に **`run: checklist A (all rules)`** を必ず実行する。チェックだけして完了扱いは禁止。失敗時は修正して同じタスクを再実行し、通るまで続ける。
+- **`mdc` 更新時は `spec` 同時更新を必須化：** 6本の `.mdc` のどれかを変更したら、**必ず** `cursor_rules/scripts/sync-checklist-a-spec.ps1` を実行して `spec/checklist_a_requirements.json` を更新する。`spec` は「6本 `.mdc` の全内容（正規化後）」のハッシュを保持する。**更新しないまま commit/push することは禁止**。
+- **判定の基準（抜け漏れ防止）：** `run: checklist A (all rules)` は 6本 `.mdc` それぞれについて「正規化済み全内容の SHA-256」を `spec/checklist_a_requirements.json` と照合する。一致しない場合は **FAIL（mdc changed but spec not synced）** として作業完了不可。
 
 詳細（リポジトリの役割・サブモジュール手順・Cursor の使い方）は **Cursor開発共通ルール_ユーザー向け説明.md の参考4** を参照。
