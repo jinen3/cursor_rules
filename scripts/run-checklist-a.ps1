@@ -372,28 +372,6 @@ if ($checkFlags.enforceRequirementClassification) {
   }
 }
 
-if ($manualRequirementIds.Count -gt 0) {
-  Step "Manual review required (human check)"
-  $lines = New-Object System.Collections.Generic.List[string]
-  foreach ($rid in $manualRequirementIds) {
-    $ridText = [string]$rid
-    if ([string]::IsNullOrWhiteSpace($ridText)) { continue }
-    $guidance = ""
-    if ($null -ne $manualCheckGuidance -and ($manualCheckGuidance.PSObject.Properties.Name -contains $ridText)) {
-      $guidance = [string]$manualCheckGuidance.PSObject.Properties[$ridText].Value
-    }
-    if ([string]::IsNullOrWhiteSpace($guidance)) {
-      $guidance = "Manual confirmation required."
-    }
-    $line = ("- " + $ridText + ": " + $guidance)
-    Write-Host $line
-    [void]$lines.Add($line)
-  }
-  if ($lines.Count -gt 0) {
-    $popupText = "Manual review required before final sign-off:`r`n`r`n" + ($lines -join "`r`n")
-    Show-InfoPopup "Checklist A Manual Review" $popupText
-  }
-}
 
 if ($runtimeChecks.Count -gt 0) {
   Step "Run runtime checks from policy"
@@ -668,6 +646,29 @@ if (-not $checkFlags.runUnitTestsWhenAvailable) {
     Write-Host "OK: Unit tests passed."
   } else {
     Write-Host "SKIP: tests not run (.venv or tests directory missing)."
+  }
+}
+
+if ($manualRequirementIds.Count -gt 0) {
+  Step "Manual review required (human check)"
+  $lines = New-Object System.Collections.Generic.List[string]
+  foreach ($rid in $manualRequirementIds) {
+    $ridText = [string]$rid
+    if ([string]::IsNullOrWhiteSpace($ridText)) { continue }
+    $guidance = ""
+    if ($null -ne $manualCheckGuidance -and ($manualCheckGuidance.PSObject.Properties.Name -contains $ridText)) {
+      $guidance = [string]$manualCheckGuidance.PSObject.Properties[$ridText].Value
+    }
+    if ([string]::IsNullOrWhiteSpace($guidance)) {
+      $guidance = "Manual confirmation required."
+    }
+    $line = ("- " + $ridText + ": " + $guidance)
+    Write-Host $line
+    [void]$lines.Add($line)
+  }
+  if ($lines.Count -gt 0) {
+    $popupText = "Manual review required before final sign-off:`r`n`r`n" + ($lines -join "`r`n")
+    Show-InfoPopup "Checklist A Manual Review" $popupText
   }
 }
 
