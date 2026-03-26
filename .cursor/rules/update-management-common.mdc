@@ -91,6 +91,11 @@ alwaysApply: true
       "requiredWhen": "always"
     },
     {
+      "id": "project-checklist-task-no-skiptests",
+      "type": "project_checklist_task_no_skiptests",
+      "requiredWhen": "always"
+    },
+    {
       "id": "project-has-cursor-rules-submodule-entry",
       "type": "project_has_cursor_rules_submodule_entry",
       "requiredWhen": "always"

@@ -321,6 +321,21 @@ if ($runtimeChecks.Count -gt 0) {
         }
         Write-Host ("OK runtime: " + $id)
       }
+      "project_checklist_task_no_skiptests" {
+        if (-not (Test-Path -LiteralPath $projectTasksPath)) {
+          Fail ("runtime check failed: " + $id + " (.vscode/tasks.json missing)")
+        }
+        $projTasks = Read-Json $projectTasksPath
+        $task = $projTasks.tasks | Where-Object { $_.label -eq "run: checklist A (all rules)" } | Select-Object -First 1
+        if ($null -eq $task) {
+          Fail ("runtime check failed: " + $id + " (task label not found)")
+        }
+        $argsText = (@($task.args) -join " ")
+        if ($argsText -match [Regex]::Escape("-SkipTests")) {
+          Fail ("runtime check failed: " + $id + " (-SkipTests must not be in run task)")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
       "project_has_cursor_rules_submodule_entry" {
         if (-not (Test-Path -LiteralPath $gitmodulesPath)) {
           Fail ("runtime check failed: " + $id + " (.gitmodules missing)")
