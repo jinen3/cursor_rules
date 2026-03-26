@@ -4,24 +4,90 @@
 
 ## 毎日ここだけ見る（入口はこの文書1本）
 
-**方針：** 準備を別の場所に隠さない。**毎日・複数プロジェクトを開く**前提で、**「そのプロジェクトでまだか／もう済んだか」**だけを同じ画面で確認する。
+**方針：** 下に書いた **A →（足りなければ B-1〜B-3）→ また A** だけで完結する。別ページを探さない。
+
+---
 
 ### A) 毎回（数秒）：開発に入る前の固定ルーティン
 
-1. `ターミナル(T)` → `タスクの実行…` → `dev-start (cursor_rules submodule)`（なければ下の B を先に）
-2. `Ctrl+Shift+G` → `cursor_rules (new commits)` が出ていればステージ → コミット → 同期/プッシュ（共有が必要なときだけ）
+1. `ターミナル(T)` → `タスクの実行…` → **`dev-start (cursor_rules submodule)`** を選ぶ  
+   - 一覧に **無い** → まず下の **B-2**（その前に **B-1** が未完了なら B-1 から）
+2. `Ctrl+Shift+G`（ソース管理）→ `cursor_rules (new commits)` が出ていれば **ステージ → コミット → 同期/プッシュ**（チームに共有するときだけ）
 
-### B) プロジェクトを開くたびに確認（隔離しない・毎日見る）
+**タスクが無いときの代替（クリックできないときだけ・親リポジトリのルートで）**
 
-「初回だけ」と書いてある項目も、**プロジェクトが違えばそのプロジェクトで未設定のことがある**。毎日いくつもプロジェクトを開くなら、**開いた直後にこの3点だけ頭の中でチェック**すればよい。
+```powershell
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor-rules.ps1
+```
 
-| 確認 | まだなら |
-|------|----------|
-| `.gitmodules` で `cursor_rules` がある？ | 手順 **1)** でサブモジュール追加 |
-| `タスクの実行…` に `dev-start` が出る？ | `.vscode/tasks.json` 準備（`setup-tasks-link.ps1`） |
-| Rules に 6 本の `.mdc` がパス登録済み？ | 手順 **【最初の1回だけ】Rules登録**（同じページ内） |
+---
 
-**憲法・更新方針・.mdc 本文の参照**は `cursor_instructions_template.md`。**開いてすぐ動く手順・チェックリストはこのファイル**に集約する（文書を増やさない）。
+### B) まだならこの場で実行（プロジェクトごと。毎日いくつも開くならその都度）
+
+「初回だけ」ではなく **プロジェクトが変われば未設定がありうる**。足りないものだけ下から実行し、**終わったら上の A に戻る**。
+
+#### B-1. `.gitmodules` に `cursor_rules` が無い（サブモジュール未追加）
+
+親リポジトリの**ルート**で実行（Cursor のターミナルで可）。**ルート直下に `cursor_rules` という名前の通常フォルダがあると失敗**するので、その場合は退避か削除してから。
+
+```powershell
+cd <プロジェクトルートに置き換え>
+git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules
+git add .gitmodules cursor_rules
+git commit -m "Add cursor_rules submodule"
+git push
+```
+
+#### B-2. `タスクの実行…` に `dev-start` が出ない（`.vscode/tasks.json` 未準備）
+
+**B-1 が済んで `cursor_rules` フォルダが取れていること**が前提。親リポジトリの**ルート**で：
+
+```powershell
+cd <プロジェクトルートに置き換え>
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1
+```
+
+- シンボリックリンクに失敗した場合はコピーにフォールバックし、`.vscode/tasks_copy.txt` が目印になることがある。  
+- 実行後、もう一度 `タスクの実行…` を開き直す。
+
+#### B-3. Rules に 6 本の `.mdc` が未登録（パス指定の手動登録が必要）
+
+**`.mdc` がディスク上にあっても、Cursor は自動ではルールに入れない。** 次を行う。
+
+1. Cursor で **Settings（設定）** → **Rules**（または **Cursor Settings → Rules**）を開く  
+2. **Add Rule** / **ルールを追加** → **ファイルから追加**（表記はバージョンで多少違う）  
+3. 次の **フォルダ**にある **6 ファイルすべて**を追加し、**それぞれ `alwaysApply: true`**（常に適用）にする  
+
+**登録元フォルダ（エクスプローラーで開くとき）**
+
+```text
+<プロジェクトルート>\cursor_rules\.cursor\rules\
+```
+
+**追加する 6 ファイル名（すべて `alwaysApply: true`）**
+
+| ファイル名 |
+|------------|
+| `venv-only-common.mdc` |
+| `errors-debug-unittest-common.mdc` |
+| `post-modification-common.mdc` |
+| `gui-build-security-common.mdc` |
+| `markdown-common.mdc` |
+| `update-management-common.mdc` |
+
+**完全パス例（`D:` やフォルダ名は自分の環境に合わせて置き換え）**
+
+```text
+D:\pyscript\tool\あなたのプロジェクト\cursor_rules\.cursor\rules\venv-only-common.mdc
+（以下、上記6本それぞれ同様に指定）
+```
+
+---
+
+### このあと何を読むか（迷子防止）
+
+- **毎日の操作・上の A/B だけ**で足りる。  
+- **ルールの「本文」や更新の憲法**を読むときだけ `cursor_instructions_template.md` を開く（作業に必須ではない）。
 
 ---
 
@@ -96,7 +162,7 @@
          │     │  ├─ `gui-build-security-common.mdc`
          │     │  ├─ `markdown-common.mdc`
          │     │  └─ `update-management-common.mdc`
-         │     └─ 手順の詳細: 本ページの「必要情報」→「【最初の1回だけ】Rules登録（重要）」参照
+         │     └─ 手順の詳細: **本ページ冒頭「毎日ここだけ見る」→ B-3**（この1画面にコマンド・パスあり）
          └─ はい（以降は通常運用へ）
       ├─ 【リモートリポジトリ（親GitHub）の更新まで含めたい】＝他人/別PCにも反映したい
       │  └─ サブモジュールの参照先（ポインタ）を「cursor_rules のリモート最新（origin/main 先端）」に更新して共有したい？
