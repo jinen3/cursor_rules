@@ -128,6 +128,10 @@ $requiredMdc = @($policy.requiredMdc)
 $requiredScripts = @($policy.requiredScripts)
 $requiredTaskLabels = @($policy.requiredTaskLabels)
 $checkFlags = $policy.checks
+$coverageTargets = @()
+if ($policy.PSObject.Properties.Name -contains "coverageTargets") {
+  $coverageTargets = @($policy.coverageTargets)
+}
 $runtimeChecks = @()
 if ($policy.PSObject.Properties.Name -contains "runtimeChecks") {
   foreach ($rc in @($policy.runtimeChecks)) {
@@ -143,6 +147,7 @@ $testsDir = Join-Path $root "tests"
 if ($requiredMdc.Count -eq 0) { Fail "Policy requiredMdc is empty" }
 if ($requiredScripts.Count -eq 0) { Fail "Policy requiredScripts is empty" }
 if ($requiredTaskLabels.Count -eq 0) { Fail "Policy requiredTaskLabels is empty" }
+if ($checkFlags.enforceCoverageMap -and $coverageTargets.Count -eq 0) { Fail "Policy coverageTargets is empty" }
 
 Step "Check required 6 mdc files"
 foreach ($name in $requiredMdc) {
@@ -221,6 +226,26 @@ if ($checkFlags.runMarkdownTocFixAndCheck) {
   powershell -ExecutionPolicy Bypass -File $tocScript -RootPath $root
   if ($LASTEXITCODE -ne 0) {
     Fail "TOC check phase failed after auto-fix."
+  }
+}
+
+if ($checkFlags.enforceCoverageMap) {
+  Step "Check coverage map (mdc -> runtime checks)"
+  $covered = New-Object System.Collections.Generic.HashSet[string]
+  foreach ($rc in $runtimeChecks) {
+    if ($rc.PSObject.Properties.Name -contains "covers") {
+      foreach ($c in @($rc.covers)) {
+        if (-not [string]::IsNullOrWhiteSpace([string]$c)) {
+          [void]$covered.Add([string]$c)
+        }
+      }
+    }
+  }
+  foreach ($target in $coverageTargets) {
+    if (-not $covered.Contains([string]$target)) {
+      Fail ("Coverage gap: no runtime check covers " + $target)
+    }
+    Write-Host ("OK coverage: " + $target)
   }
 }
 
@@ -369,6 +394,28 @@ if ($runtimeChecks.Count -gt 0) {
         powershell -NoProfile -ExecutionPolicy Bypass -File $tocScript -RootPath $root | Out-Null
         if ($LASTEXITCODE -ne 0) {
           Fail ("runtime check failed: " + $id + " (TOC check script failed)")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
+      "project_docs_minimum_present" {
+        $readmeMd = Join-Path $root "README.md"
+        $readmeTxt = Join-Path $root "readme.txt"
+        $hasReadme = (Test-Path -LiteralPath $readmeMd) -or (Test-Path -LiteralPath $readmeTxt)
+        if (-not $hasReadme) {
+          Fail ("runtime check failed: " + $id + " (README.md/readme.txt not found)")
+        }
+        $textbookFiles = Get-ChildItem -LiteralPath $root -File -Filter "textbook_*_project.md" -ErrorAction SilentlyContinue
+        if (($null -eq $textbookFiles) -or ($textbookFiles.Count -lt 1)) {
+          Fail ("runtime check failed: " + $id + " (textbook_*_project.md not found)")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
+      "project_no_open_bind" {
+        $hits = Get-ChildItem -LiteralPath $root -Recurse -File -Include *.py,*.ps1,*.json,*.yml,*.yaml -ErrorAction SilentlyContinue |
+          Where-Object { $_.FullName -notmatch [Regex]::Escape("\cursor_rules\") } |
+          Select-String -Pattern '0\.0\.0\.0' -SimpleMatch:$false -List
+        if ($null -ne $hits -and $hits.Count -gt 0) {
+          Fail ("runtime check failed: " + $id + " (found 0.0.0.0 bind in project files)")
         }
         Write-Host ("OK runtime: " + $id)
       }
