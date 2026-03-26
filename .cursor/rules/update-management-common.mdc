@@ -91,6 +91,11 @@ alwaysApply: true
       "requiredWhen": "always"
     },
     {
+      "id": "project-has-cursor-rules-submodule-entry",
+      "type": "project_has_cursor_rules_submodule_entry",
+      "requiredWhen": "always"
+    },
+    {
       "id": "sync-spec-script-runs",
       "type": "sync_spec_script_runs",
       "requiredWhen": "always"

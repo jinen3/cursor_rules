@@ -109,6 +109,7 @@ $rulesDir = Join-Path $cursorRules ".cursor\\rules"
 $updateMdc = Join-Path $rulesDir "update-management-common.mdc"
 $tasksTemplate = Join-Path $cursorRules "templates\\vscode_tasks.tasks.json.example"
 $projectTasksPath = Join-Path $root ".vscode\\tasks.json"
+$gitmodulesPath = Join-Path $root ".gitmodules"
 
 Step "Checklist A start"
 Write-Host ("ProjectRoot: " + $root)
@@ -317,6 +318,20 @@ if ($runtimeChecks.Count -gt 0) {
         }
         if (-not ($argsText -match [Regex]::Escape("-ProjectRoot"))) {
           Fail ("runtime check failed: " + $id + " (-ProjectRoot missing)")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
+      "project_has_cursor_rules_submodule_entry" {
+        if (-not (Test-Path -LiteralPath $gitmodulesPath)) {
+          Fail ("runtime check failed: " + $id + " (.gitmodules missing)")
+        }
+        $gitmodulesText = Read-TextAnyEncoding $gitmodulesPath
+        if (-not ($gitmodulesText -match 'path\s*=\s*cursor_rules')) {
+          Fail ("runtime check failed: " + $id + " (.gitmodules has no cursor_rules path)")
+        }
+        $subStatus = git -C $root submodule status cursor_rules
+        if ($LASTEXITCODE -ne 0) {
+          Fail ("runtime check failed: " + $id + " (git submodule status failed)")
         }
         Write-Host ("OK runtime: " + $id)
       }
