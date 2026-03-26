@@ -44,3 +44,10 @@ pip install -r requirements.txt
 ```powershell
 python -m pip uninstall -y <パッケージ名>
 ```
+
+---
+
+## 変更後の必須チェック（すり抜け防止）
+
+- `.mdc` や共通スクリプトを更新したら、プロジェクト側で次を実行して「漏れ」を機械で検出する：
+  - `ターミナル(T)` → `タスクの実行…` → `check: cursor_rules sanity`

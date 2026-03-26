@@ -41,6 +41,9 @@ function Read-TextFileLines([string]$path) {
     $utf8Strict = New-Object System.Text.UTF8Encoding($false, $true)
     try {
       $text = $utf8Strict.GetString($bytes)
+      if ($text -match [char]0xFFFD) {
+        throw "utf8 decoded with replacement char"
+      }
       $encoding = "utf8"
     } catch {
       $cp932 = [System.Text.Encoding]::GetEncoding(932)
@@ -84,7 +87,7 @@ function Get-HeadingLines([string[]]$lines) {
 
 function Has-TocSection([string[]]$lines) {
   foreach ($line in $lines) {
-    if ($line -match '^\s*##\s+目次\s*$') {
+    if ($line -match '^\s*##\s*目次\s*$') {
       return $true
     }
   }
@@ -203,6 +206,28 @@ $fixed = 0
 foreach ($f in $mdFiles) {
   $read = Read-TextFileLines $f.FullName
   $content = $read.Lines
+
+  # If TOC looks missing, try the other common encoding once (UTF-8 <-> CP932).
+  if (-not (Has-TocSection $content)) {
+    $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
+    if ($read.Encoding -eq "cp932") {
+      try {
+        $utf8Strict = New-Object System.Text.UTF8Encoding($false, $true)
+        $alt = $utf8Strict.GetString($bytes)
+        if ($alt -notmatch [char]0xFFFD) {
+          $altLines = $alt -split "\r\n|\n|\r"
+          if (Has-TocSection $altLines) { $content = $altLines }
+        }
+      } catch {
+      }
+    } else {
+      $cp932 = [System.Text.Encoding]::GetEncoding(932)
+      $alt = $cp932.GetString($bytes)
+      $altLines = $alt -split "\r\n|\n|\r"
+      if (Has-TocSection $altLines) { $content = $altLines }
+    }
+  }
+
   $headings = Get-HeadingLines $content
   if ($headings.Count -le 1) {
     continue
