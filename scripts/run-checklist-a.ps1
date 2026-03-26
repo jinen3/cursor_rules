@@ -335,9 +335,13 @@ if ($runtimeChecks.Count -gt 0) {
         Write-Host ("OK runtime: " + $id)
       }
       "submodule_clean_worktree" {
-        $subStatus = (git -C $cursorRules status --porcelain).Trim()
+        $subRaw = git -C $cursorRules status --porcelain
         if ($LASTEXITCODE -ne 0) {
           Fail ("runtime check failed: " + $id + " (cannot read submodule status)")
+        }
+        $subStatus = ""
+        if ($null -ne $subRaw) {
+          $subStatus = ($subRaw | Out-String).Trim()
         }
         if (-not [string]::IsNullOrWhiteSpace($subStatus)) {
           Fail ("runtime check failed: " + $id + " (submodule has local changes)")
