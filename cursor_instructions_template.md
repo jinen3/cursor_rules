@@ -2,8 +2,8 @@
 
 **役割:** この文書は Cursor が読んで実行する指示書である。**この文書は .mdc ではない。** Markdown（.md）であり、共通リポジトリ（cursor_rules）のルートに置く「マスタ指示文書」である。次の 6 本の .mdc（venv-only-common.mdc, errors-debug-unittest-common.mdc, post-modification-common.mdc, gui-build-security-common.mdc, markdown-common.mdc, update-management-common.mdc）は .cursor/rules/ に置く個別ルールで、本ファイル（cursor_instructions_template.md）はその一覧・使い方・更新手順を一括で示す。人間向けの説明は別ファイル `Cursor開発共通ルール_ユーザー向け説明.md` に記載する。
 
-**リビジョン:** 3  
-**更新日:** 2026-03-25
+**リビジョン:** 4  
+**更新日:** 2026-03-26
 
 ## 目次
 
@@ -45,31 +45,17 @@
 
 **実施すること:** 次の 6 本の .mdc（venv-only-common.mdc, errors-debug-unittest-common.mdc, post-modification-common.mdc, gui-build-security-common.mdc, markdown-common.mdc, update-management-common.mdc）は **共通リポジトリ（cursor_rules）の `.cursor/rules/` にのみ存在させる。** 作業対象のプロジェクトでは、cursor_rules をサブモジュールとして取り込み、**サブモジュール内のパス（プロジェクトフォルダ/cursor_rules/.cursor/rules/）を参照して** これら 6 本を登録すること。すべて `alwaysApply: true` で登録する。
 
-### 【最初の1回だけ】Rules登録（重要・短縮版）
+### Rules 登録の手順・チェックリスト・毎日の dev-start はどこに書いてある？
 
-このプロジェクトで最初に一度だけ、Cursor の Rules に **サブモジュール内の `.mdc` を登録**する必要がある。**サブモジュールを更新しても、Rules が自動登録されるわけではない**ため、ここを最初にやる。
+**重複を避けるため、開いてすぐ迷わない運用は `cursor_rules_submodule_開発開始手順.md` に集約する。** そちらに、次をまとめて載せている。
 
-- 登録する場所：`<プロジェクトルート>/cursor_rules/.cursor/rules/`
-- 登録するもの：次の 6 本（`alwaysApply: true`）
-  - `venv-only-common.mdc`
-  - `errors-debug-unittest-common.mdc`
-  - `post-modification-common.mdc`
-  - `gui-build-security-common.mdc`
-  - `markdown-common.mdc`
-  - `update-management-common.mdc`
+- プロジェクトごとの確認（サブモジュール／タスク／Rules の3点）
+- **タスクの実行…** で `dev-start` → ソース管理で共有の有無
+- 6 本のファイル名と登録元パス
 
-以降は、日々の作業開始時に `cursor_rules` サブモジュールを更新し（更新したい場合）、必要ならソース管理GUIで差分を commit/push する運用にする（詳細は `cursor_rules_submodule_開発開始手順.md` を参照）。
+**本ファイル（cursor_instructions_template.md）の役割**は、上記の「禁止・パス参照の原則」と、下記セクションの更新方針・.mdc 本文（参照用）である。
 
-| ファイル名 | 用途 |
-|------------|------|
-| venv-only-common.mdc | 仮想環境・システムPython保護 |
-| errors-debug-unittest-common.mdc | エラー対応・デバッグ・単体テスト・知見の追記先 |
-| post-modification-common.mdc | コード修正後の必須手順（README・教材の更新） |
-| gui-build-security-common.mdc | GUI・ビルド・WEBセキュリティ |
-| markdown-common.mdc | Markdown 全般の共通ルール（globs: "**/*.md"、目次リンク・アンカー・プレビュー注記含む） |
-| update-management-common.mdc | 共通／プロジェクトの更新場所・サブモジュール更新・コピー禁止 |
-
-上記 6 本の .mdc（venv-only-common.mdc, errors-debug-unittest-common.mdc, post-modification-common.mdc, gui-build-security-common.mdc, markdown-common.mdc, update-management-common.mdc）の本文は、本ファイル（cursor_instructions_template.md）の「10. .mdc の内容（参照用）」を参照すること。これにより cursor_instructions_template.md 一枚のインプットで登録・作成まで完結する。
+**6 本の .mdc の本文**は、本ファイルの「10. .mdc の内容（参照用）」を参照すること。
 
 ---
 
