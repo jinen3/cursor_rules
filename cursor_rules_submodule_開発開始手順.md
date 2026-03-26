@@ -45,7 +45,7 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\dev-start-cursor
 親リポジトリの**ルート**で実行（Cursor のターミナルで可）。**ルート直下に `cursor_rules` という名前の通常フォルダがあると失敗**するので、その場合は退避か削除してから。
 
 ```powershell
-# Cursorでターミナルを開く: Ctrl+`（バッククォート）
+# Cursorでターミナルを開く: Ctrl+SHIFT+@（環境により Ctrl+` の場合もある）
 cd <プロジェクトルートに置き換え> # 作業ディレクトリをプロジェクトのルートに移動
 git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules # cursor_rules をサブモジュールとして追加
 git add .gitmodules cursor_rules # サブモジュール設定と参照先（ポインタ）変更をステージ
@@ -58,7 +58,7 @@ git push # GitHubへ送って他PC/他人にも反映
 **B-1 が済んで `cursor_rules` フォルダが取れていること**が前提。親リポジトリの**ルート**で：
 
 ```powershell
-# Cursorでターミナルを開く: Ctrl+`（バッククォート）
+# Cursorでターミナルを開く: Ctrl+SHIFT+@（環境により Ctrl+` の場合もある）
 cd <プロジェクトルートに置き換え> # 作業ディレクトリをプロジェクトのルートに移動
 powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1 # `.vscode/tasks.json` を作成（推奨: 共通テンプレへのリンク。不可ならコピー）
 ```
