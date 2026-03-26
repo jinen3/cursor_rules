@@ -26,6 +26,12 @@
    - 一覧に **無い** → まず下の **B-2**（その前に **B-1** が未完了なら B-1 から）
 2. `Ctrl+Shift+G`（ソース管理）→ `cursor_rules (new commits)` が出ていれば **ステージ → コミット → 同期/プッシュ**（親が指す参照先を共有して、別PC/他人でも同じ状態にする）
 
+**コミットメッセージ（おすすめ・統一）**
+
+ソース管理で `cursor_rules (new commits)` が出たときは、`tasks.json` の準備・更新が同時に出ていてもまとめてコミットしてOKです（あなたの1台運用なら迷いが減ります）。
+
+- `Update cursor_rules submodule pointer (ルール最新化)`（`tasks.json` も含めてまとめてOK）
+
 **タスクが「成功したか」の確認方法（この画面だけでOK）**
 
 - **確認①（ターミナル出力）**：エラーが赤字で出ていない／最後までメッセージが出て止まっている（`ParserError` や `TerminatorExpectedAtEndOfString` が出ていない）
@@ -35,6 +41,8 @@
     - つまり「サブモジュールの中身が取得できて、いまどの版（どのコミット）を使っているか」が表示できている＝成功の目印
   - `setup-tasks-link` の確認：プロジェクト直下に `.vscode/tasks.json` が作られ、`ターミナル(T)` → `タスクの実行…` を開いたときに **`dev-start (cursor_rules submodule)` が一覧に表示される**
     - つまり「tasks.json が読み込まれて、クリックで dev-start を起動できる状態になった」＝成功の目印
+  - **注意（SkipRemote / update skipped の意味）**：タスク実行で `SkipRemote specified: remote update is skipped.` と出た場合、**最新化（--remote）がスキップされ、取得だけ**になっています。
+    - 最新化したいときは、`-SkipRemote` が付いていない `dev-start (cursor_rules submodule)` を実行します（clone直後の「取得だけ」用途が `-SkipRemote` です）。
 
 **タスクが無いときの代替（クリックできないときだけ・親リポジトリのルートで コマンド実行）**
 
