@@ -18,7 +18,7 @@
 | 準備 | **B-1** | サブモジュールの作成 | コマンドライン（Ctrl+SHIFT+@） | `git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules`<br>`git add .gitmodules cursor_rules`<br>`git commit -m \"Add cursor_rules submodule\"`<br>`git push` | サブモジュールを追加して push<br>`.gitmodules` に cursor_rules あり（サブモジュール追加済） | プロジェクトに 共通ルールcursor_rules を組み込む。 | ー |
 | 準備 | **B-2** | 最新化用のテンプレ準備 | コマンドライン（Ctrl+SHIFT+@） | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1` | `.vscode/tasks.json` を作る（共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | B-1 |
 | 準備 | **B-3** | ルールの初回登録 | Cursor機能（Rules） | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>6 ファイル + alwaysApply: true | 6本の `.mdc` を Rules にパス登録（alwaysApply） | .mdc を自動適用して「共通ルール」をブレなく効かせる | ー |
-| いつでも | （ルール）共通不具合の直し方 | 迷わないための方針 | **共通側（d:\\pyscript\\cursor_rules）で修正→commit/push** → 各プロジェクトは **dev-start** で取り込む | 共通不具合は共通側を直す | **警告：目的を見失わない。** GitHub操作やルール整備に悩んで時間を溶かしがち。まず「何をやりたいか？」（=開発で結果を出す）に立ち返る。 | B-2（共通不具合のとき） |
+| いつでも | （ルール）共通不具合の直し方 | 迷わないための方針 | 共通不具合は共通側を直す | **共通側（d:\\pyscript\\cursor_rules）で修正→commit/push** → 各プロジェクトは **dev-start** で取り込む | **警告：目的を見失わない。** GitHub操作やルール整備に悩んで時間を溶かしがち。まず「何をやりたいか？」（=開発で結果を出す）に立ち返る。 | B-2（共通不具合のとき） |
 
 ### A) 毎回（数秒）：開発に入る前の固定ルーティン
 
