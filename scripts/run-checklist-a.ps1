@@ -66,6 +66,15 @@ function Get-Sha256Hex([string]$text) {
   return ([System.BitConverter]::ToString($hash) -replace "-", "").ToLowerInvariant()
 }
 
+function Is-ConditionMet([string]$requiredWhen, [string]$venvPython, [string]$testsDir) {
+  switch ($requiredWhen) {
+    "always" { return $true }
+    "venv_exists" { return (Test-Path -LiteralPath $venvPython) }
+    "venv_and_tests_exist" { return ((Test-Path -LiteralPath $venvPython) -and (Test-Path -LiteralPath $testsDir)) }
+    default { return $true }
+  }
+}
+
 function Step([string]$msg) {
   Write-Host ""
   Write-Host ("== " + $msg + " ==")
@@ -117,6 +126,17 @@ $requiredMdc = @($policy.requiredMdc)
 $requiredScripts = @($policy.requiredScripts)
 $requiredTaskLabels = @($policy.requiredTaskLabels)
 $checkFlags = $policy.checks
+$runtimeChecks = @()
+if ($policy.PSObject.Properties.Name -contains "runtimeChecks") {
+  foreach ($rc in @($policy.runtimeChecks)) {
+    if ($null -ne $rc) {
+      $runtimeChecks += $rc
+    }
+  }
+}
+
+$venvPython = Join-Path $root ".venv\\Scripts\\python.exe"
+$testsDir = Join-Path $root "tests"
 
 if ($requiredMdc.Count -eq 0) { Fail "Policy requiredMdc is empty" }
 if ($requiredScripts.Count -eq 0) { Fail "Policy requiredScripts is empty" }
@@ -202,14 +222,68 @@ if ($checkFlags.runMarkdownTocFixAndCheck) {
   }
 }
 
+if ($runtimeChecks.Count -gt 0) {
+  Step "Run runtime checks from policy"
+  foreach ($rc in $runtimeChecks) {
+    $id = [string]$rc.id
+    $type = [string]$rc.type
+    $requiredWhen = [string]$rc.requiredWhen
+    if ([string]::IsNullOrWhiteSpace($requiredWhen)) {
+      $requiredWhen = "always"
+    }
+
+    if ([string]::IsNullOrWhiteSpace($type)) {
+      Fail ("runtime check type is empty: " + $id)
+    }
+
+    if (-not (Is-ConditionMet $requiredWhen $venvPython $testsDir)) {
+      Write-Host ("SKIP runtime check (" + $id + "): condition not met -> " + $requiredWhen)
+      continue
+    }
+
+    switch ($type) {
+      "venv_python_prefix_contains" {
+        $expected = [string]$rc.expectedSubstring
+        if ([string]::IsNullOrWhiteSpace($expected)) {
+          Fail ("runtime check missing expectedSubstring: " + $id)
+        }
+        $prefix = & $venvPython -c "import sys; print(sys.prefix)"
+        if ($LASTEXITCODE -ne 0) {
+          Fail ("runtime check failed to execute python: " + $id)
+        }
+        if (-not ($prefix -match [Regex]::Escape($expected))) {
+          Fail ("runtime check failed: " + $id + " (prefix does not contain " + $expected + ")")
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
+      "venv_test_runner" {
+        if ($SkipTests) {
+          Write-Host ("SKIP runtime check (" + $id + "): SkipTests requested")
+          break
+        }
+        & $venvPython -m pytest -q
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "pytest failed. Trying unittest discovery."
+          & $venvPython -m unittest discover -s tests -v
+          if ($LASTEXITCODE -ne 0) {
+            Fail ("runtime test check failed: " + $id)
+          }
+        }
+        Write-Host ("OK runtime: " + $id)
+      }
+      default {
+        Fail ("Unknown runtime check type: " + $type)
+      }
+    }
+  }
+}
+
 if (-not $checkFlags.runUnitTestsWhenAvailable) {
   Step "Skip tests (policy disabled)"
 } elseif ($SkipTests) {
   Step "Skip tests (requested)"
 } else {
   Step "Run unit tests with .venv python if available"
-  $venvPython = Join-Path $root ".venv\\Scripts\\python.exe"
-  $testsDir = Join-Path $root "tests"
   if ((Test-Path -LiteralPath $venvPython) -and (Test-Path -LiteralPath $testsDir)) {
     & $venvPython -m pytest -q
     if ($LASTEXITCODE -ne 0) {

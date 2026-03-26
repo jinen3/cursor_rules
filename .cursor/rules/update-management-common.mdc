@@ -61,7 +61,20 @@ alwaysApply: true
     "enforceSpecSync": true,
     "runMarkdownTocFixAndCheck": true,
     "runUnitTestsWhenAvailable": true
-  }
+  },
+  "runtimeChecks": [
+    {
+      "id": "venv-python-prefix",
+      "type": "venv_python_prefix_contains",
+      "expectedSubstring": ".venv",
+      "requiredWhen": "venv_exists"
+    },
+    {
+      "id": "venv-pytest-or-unittest",
+      "type": "venv_test_runner",
+      "requiredWhen": "venv_and_tests_exist"
+    }
+  ]
 }
 ```
 <!-- CHECKLIST_A_POLICY_END -->
