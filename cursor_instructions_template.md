@@ -2,7 +2,7 @@
 
 **役割:** この文書は Cursor が読んで実行する指示書である。**この文書は .mdc ではない。** Markdown（.md）であり、共通リポジトリ（cursor_rules）のルートに置く「マスタ指示文書」である。次の 7 本の .mdc（venv-only-common.mdc, errors-debug-unittest-common.mdc, post-modification-common.mdc, gui-build-security-common.mdc, markdown-common.mdc, update-management-common.mdc, checklist-a-all-rules-common.mdc）は .cursor/rules/ に置く個別ルールで、本ファイル（cursor_instructions_template.md）はその一覧・使い方・更新手順を一括で示す。人間向けの説明は別ファイル `Cursor開発共通ルール_ユーザー向け説明.md` に記載する。
 
-**リビジョン:** 6  
+**リビジョン:** 7  
 **更新日:** 2026-03-30
 
 ## 目次
@@ -65,9 +65,9 @@
 - **スクリプト内部の検証は自動**（各 `.mdc` 全文のハッシュ照合、TOC fix→check、該当時の単体テスト、ランタイム検証など）。
 - **エディタがチャット終了やファイル保存を検知して、勝手に Checklist A を起動する**わけではない。運用ルール上、**完了報告の前**に Checklist A を通す。**Cursor（エージェント）**は可能な限り `run: checklist A (all rules)` を実行する。**ユーザーが同じタスクを手動で実行する**場合もある。
 
-#### 詳細・FAQ（タイミング・最新の .mdc）
+#### 詳細・FAQ（実行タイミング・`.mdc` 内容の検証反映）
 
-- **`Checklist_A.md`** の「[実行タイミング（いつ実行するか）](Checklist_A.md#sec-timing)」「[最新の .mdc 内容は反映されるか](Checklist_A.md#sec-fresh)」を参照する。
+- **`Checklist_A.md`** の「[実行タイミング（いつ実行するか）](Checklist_A.md#sec-timing)」「[最新の .mdc 内容が検証に反映される仕組み](Checklist_A.md#sec-fresh)」を参照する。
 
 **【Cursor対応項目】** 共通ルールの順守は **Markdown 目次だけ**ではなく、venv・テスト・事後手順・セキュリティ・更新管理など **すべての領域別 `.mdc`** にまたがる。それらを **抜け漏れなく機械検証する本体**である **Checklist A** の役割を、`checklist-a-all-rules-common.mdc` で明示する。
 

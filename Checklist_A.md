@@ -7,7 +7,7 @@
 - [失敗したとき（自動でやり直す方針）](#sec4)
 - [手動確認が必要になる条件（WEBのみ）](#sec5)
 - [実行タイミング（いつ実行するか）](#sec-timing)
-- [最新の .mdc 内容は反映されるか](#sec-fresh)
+- [最新の .mdc 内容が検証に反映される仕組み](#sec-fresh)
 
 ---
 
@@ -103,7 +103,7 @@ Checklist A は、`cursor_rules` の **7本**の `.mdc`（領域別 6 本 + **Ch
 ---
 
 <a id="sec-fresh"></a>
-## 最新の .mdc 内容は反映されるか
+## 最新の .mdc 内容が検証に反映される仕組み
 
 - **はい（前提を満たせば）。** Checklist A は、プロジェクト内の **`cursor_rules` サブモジュール**にある **実ファイル**（`.cursor/rules/*.mdc`）と、同梱の **`spec/checklist_a_requirements.json`** の **SHA-256** を照合する。
 - **共通側で `.mdc` を編集したら** `sync-checklist-a-spec.ps1` で `spec` を更新し、push したうえで、各プロジェクトは **`git submodule update --remote cursor_rules`** などで **手元のサブモジュールを最新にする**こと。古いサブモジュールのままでは、GitHub 上の最新ルールは手元に来ない。
