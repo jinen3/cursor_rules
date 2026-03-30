@@ -11,6 +11,9 @@
   If symlink creation fails, this script falls back to copying the file and
   writes a marker file: <project>/.vscode/tasks_copy.txt
 
+  NOTE: PowerShell ExecutionPolicy does NOT grant symlink permission.
+  If symlink creation is blocked, enable Windows Developer Mode or run as Admin.
+
 .PARAMETER ProjectRoot
   Project (parent repo) root. Defaults to current directory.
 
@@ -62,6 +65,7 @@ try {
 } catch {
     Write-Host "Symlink creation failed. Falling back to COPY." -ForegroundColor Yellow
     Write-Host ("Reason: {0}" -f $_.Exception.Message) -ForegroundColor DarkGray
+    Write-Host "Hint: enable Windows Developer Mode or run PowerShell as Admin for symlinks." -ForegroundColor DarkGray
 
     Copy-Item -LiteralPath $targetPath -Destination $linkPath -Force
     Write-Host ("Copied: {0}" -f $linkPath) -ForegroundColor Yellow

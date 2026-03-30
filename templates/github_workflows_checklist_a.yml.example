@@ -1,0 +1,60 @@
+name: checklist-a
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: checklist-a-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checklist-a:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python (optional)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Ensure venv exists (best-effort)
+        shell: powershell
+        run: |
+          if (Test-Path -LiteralPath ".venv\Scripts\python.exe") {
+            Write-Host "OK: .venv exists."
+          } else {
+            Write-Host "INFO: creating .venv (best-effort)."
+            python -m venv .venv
+          }
+
+      - name: Install test deps if requirements.txt exists (best-effort)
+        shell: powershell
+        run: |
+          if (Test-Path -LiteralPath ".\requirements.txt") {
+            Write-Host "INFO: installing requirements.txt into .venv (best-effort)."
+            .\.venv\Scripts\python.exe -m pip install --upgrade pip
+            .\.venv\Scripts\python.exe -m pip install -r .\requirements.txt
+          } else {
+            Write-Host "INFO: requirements.txt not found (skip)."
+          }
+
+      - name: Wire VS Code tasks from cursor_rules template (force)
+        shell: powershell
+        run: |
+          powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link.ps1 -Force
+
+      - name: Run Checklist A (all rules)
+        shell: powershell
+        run: |
+          powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\run-checklist-a.ps1 -ProjectRoot "${{ github.workspace }}"

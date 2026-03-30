@@ -452,6 +452,19 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 - **「サブモジュール更新のみでいい」**のは、**`.vscode/tasks.json` がテンプレへのシンボリックリンク**で、かつ **リンクが有効**な場合に近い（テンプレ更新＝サブモジュール更新で追従しやすい）。
 - **親リポジトリに JSON をコミットしているだけ**の場合は、**サブモジュール更新だけでは親の `tasks.json` は更新されない**。ポリシーで `requiredTaskLabels` が増えたときは、**親リポジトリ側で `tasks.json` を直して commit**するか、**`setup-tasks-link.ps1 -Force` でテンプレに寄せ直して**から commit する、が必要。
 
+#### Checklist A を「必ず実行」に近づける（CI で強制）
+
+エディタは「チャット完了」や「保存」を検知して Checklist A を自動起動しません。**必ず実行**を仕組みで担保したい場合は、**CI（GitHub Actions）で `checklist-a` を必須チェックにする**のが現実的です。
+
+- **導入（プロジェクト側で1回だけ）:**
+
+```powershell
+cd <プロジェクトルートに置き換え>
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-ci-checklist-a.ps1
+```
+
+- **推奨:** GitHub の Branch protection で **`checklist-a` を Required** にする（FAIL ならマージ不可）。
+
 ### 6) （共有＝公開）親リポジトリに commit/push する（他人/別PCにも反映）
 
 これは「ローカルで何らかの操作をして、**親リポジトリが記録しているサブモジュールの参照先（ポインタ）と、いま手元の `cursor_rules` が指しているコミットがズレた**」ときに使います。

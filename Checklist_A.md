@@ -138,3 +138,10 @@ Checklist A は、`cursor_rules` の **7本**の `.mdc`（領域別 6 本 + **Ch
 - **完全な強制（チャット送信や完了報告をブロックする OS／エディタ機能）はない。** 「Checklist A 未実行なら送信不可」といった仕組みは Cursor 標準にはない。
 - **機械的に効くもの:** ① **`run-checklist-a.ps1` を実行した結果が FAIL** なら、その時点では **ルール上「作業完了」と言えない**（スクリプトが exit code 非ゼロ）② **CI（例：GitHub Actions）で同スクリプトを走らせ、FAIL ならマージ不可**にすれば、リポジトリ単位では **かなり強い拘束**になる（要：ワークフロー設定）。
 - **それ以外:** ルール文書・§1.1 の「完了報告ゲート」は **運用とエージェントの遵守**に依存する。**pytest だけでは代替にならない**ことは、スクリプト側の検証内容が別物だからである。
+
+- **テンプレ配布（推奨）:** `cursor_rules` には Checklist A を実行する GitHub Actions のテンプレがある。各プロジェクトで次を1回実行し、`.github/workflows/checklist-a.yml` をコミットして branch protection で required にすると、**実質的に「必ず実行」**に近づく。
+
+```powershell
+cd <プロジェクトルートに置き換え>
+powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-ci-checklist-a.ps1
+```
