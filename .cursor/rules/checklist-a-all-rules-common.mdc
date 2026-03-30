@@ -1,0 +1,31 @@
+---
+description: Checklist A による全共通 .mdc 順守チェック（統合・機械検証の正）
+alwaysApply: true
+---
+
+# Checklist A（全共通 .mdc の順守チェック）
+
+本ファイルは、次の **6 本の領域別ルール**だけを並べるのではなく、**それらすべてをまとめて機械で検証する本体**である **Checklist A** を、共通ルールとして明示する。
+
+- `venv-only-common.mdc`（仮想環境）
+- `errors-debug-unittest-common.mdc`（テスト・デバッグ・知見）
+- `post-modification-common.mdc`（修正後の標準手順）
+- `gui-build-security-common.mdc`（GUI / ビルド / WEB セキュリティ）
+- `markdown-common.mdc`（Markdown・目次・TOC スクリプト）
+- `update-management-common.mdc`（更新管理・サブモジュール・Checklist A の機械可読ポリシー `CHECKLIST_A_POLICY`）
+
+## なぜこのファイルが必要か
+
+- **Markdown の目次チェックだけ**が「全ルールの順守」ではない。`check-markdown-toc.ps1` は **Checklist A の一部**であり、venv・テスト・セキュリティ・更新管理など **他の `.mdc` の要求は別のステップで検証**される。
+- **正（ソース・オブ・トゥルース）**は各 `.mdc` の本文と、Checklist A が読み込む **`spec/checklist_a_requirements.json`（各 `.mdc` 全文のハッシュ）** である。テンプレ文書（`cursor_instructions_template.md`）の参照用セクションは補助であり、**自動チェックの定義そのものではない**。
+
+## Checklist A が行うこと（要点）
+
+- `cursor_rules` サブモジュール配下の **必須 `.mdc` が揃い、本文が `spec` と一致する**（`mdc` 更新時は `sync-checklist-a-spec.ps1` で `spec` を同期すること）。
+- `run-checklist-a.ps1` が **`update-management-common.mdc` 内の `CHECKLIST_A_POLICY`（JSON）** に従い、ランタイム検証・Markdown TOC（fix→check）・（該当時）単体テストなどを実行する。
+- **分野別ルールの要求 ID** と **ランタイムチェック**の対応（カバレッジ）がポリシー上、抜けないこと。
+
+## 変更後の必須チェック（すり抜け防止）
+
+- どの依頼でも、完了報告の前に **Checklist A（統合チェック）** を必ず実行する：
+  - `ターミナル(T)` → `タスクの実行…` → `run: checklist A (all rules)`

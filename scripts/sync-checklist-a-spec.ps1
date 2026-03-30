@@ -57,7 +57,8 @@ $requiredMdc = @(
   "post-modification-common.mdc",
   "gui-build-security-common.mdc",
   "markdown-common.mdc",
-  "update-management-common.mdc"
+  "update-management-common.mdc",
+  "checklist-a-all-rules-common.mdc"
 )
 
 $mdcMap = [ordered]@{}

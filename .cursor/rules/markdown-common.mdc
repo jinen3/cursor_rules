@@ -37,6 +37,7 @@ alwaysApply: false
   - `ターミナル(T)` → `タスクの実行…` → `check: markdown toc (project)`
 - 目次が無いファイルが見つかったら、次で **自動で目次＋`<a id="secX"></a>` を追加**できる（バックアップ `.bak.<日時>` を作ってから編集する）。
   - `ターミナル(T)` → `タスクの実行…` → `fix: markdown toc (project)`
+- **Checklist A（統合）** を実行すると、上記 TOC の **fix→check** もまとめて走る。Markdown だけの話ではなく、**venv・テスト・セキュリティ・更新管理など他の共通 `.mdc` も** `checklist-a-all-rules-common.mdc` を含む **Checklist A** で一括検証される。
 
 ## 変更後の必須チェック（すり抜け防止）
 

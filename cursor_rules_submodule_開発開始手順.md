@@ -32,7 +32,7 @@
 | A1A2完了⇒開発開始 | — | — | — | ◆**A) 毎回（数秒）：開発に入る前の固定ルーティン**<br><br>**A1**：リモート（GitHub）にある `cursor_rules` の最新を、いまのプロジェクトの `cursor_rules` フォルダに取り込み、手元のサブモジュール実体＝ルール一式を最新にする。<br><br>**A2**：その結果、**親リポジトリが指すサブモジュールのコミット（ポインタ）**が変わっているなら、親リポジトリを commit/push して GitHub に載せる（チームや別PCで同じ参照を再現するため）。<br><br>**A のあと**：手元では共通ルールが最新に揃い、必要なら共有用のポインタも GitHub に出た状態なので、その前提で開発に入れる、という意味です。<br><br>**補足**：変更が無いときは A2 でコミットするものが出ません（`cursor_rules (new commits)` が出ない）。その場合は A1 までで「手元は最新」になっていれば、そのまま開発開始で大丈夫です。 | — | — | ー |
 | 準備 | **B-1** | サブモジュールの作成 | コマンドライン（Ctrl+SHIFT+@） | `git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules`<br>`git add .gitmodules cursor_rules`<br>`git commit -m \"Add cursor_rules submodule\"`<br>`git push` | サブモジュールを追加して push<br>`.gitmodules` に cursor_rules あり（サブモジュール追加済） | プロジェクトに 共通ルールcursor_rules を組み込む。 | ー |
 | 準備 | **B-2** | 最新化用のテンプレ準備 | コマンドライン（Ctrl+SHIFT+@） | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1`<br><br>（コピー更新時／上書きが必要な時）`powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1 -Force` | `.vscode/tasks.json` を作る（タスク読み込み用の設定ファイル（テンプレ）。共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | （tasks.json がGit管理対象のとき）`chore: update tasks.json for dev-start task`<br>B-1 |
-| 準備 | **B-3** | ルールの初回登録 | Cursor機能（Rules） | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>6 ファイル + alwaysApply: true<br><br>**【重要】RulesのDeleteは .mdc 実ファイル削除になることがある**ため、外したい時は **`Agent decides when to apply`** に切り替える（`git status` が `deleted` なら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules` ／特定ファイルなら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules/venv-only-common.mdc`） | 6本の `.mdc` を Rules にパス登録（alwaysApply） | .mdc を自動適用して「共通ルール」をブレなく効かせる | ー |
+| 準備 | **B-3** | ルールの初回登録 | Cursor機能（Rules） | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>7 ファイル（`markdown-common.mdc` のみ `globs` + `alwaysApply: false`、それ以外 6 本は `alwaysApply: true`）<br><br>**【重要】RulesのDeleteは .mdc 実ファイル削除になることがある**ため、外したい時は **`Agent decides when to apply`** に切り替える（`git status` が `deleted` なら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules` ／特定ファイルなら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules/venv-only-common.mdc`） | 7本の `.mdc` を Rules にパス登録 | .mdc を自動適用して「共通ルール」をブレなく効かせる | ー |
 | いつでも | （ルール）共通不具合の直し方 | 迷わないための方針 | 共通不具合は共通側を直す | **共通側（d:\\pyscript\\cursor_rules）で修正→commit/push** → 各プロジェクトは **dev-start** で取り込む | **警告：目的を見失わない。** GitHub操作やルール整備に悩んで時間を溶かしがち。まず「何をやりたいか？」（=開発で結果を出す）に立ち返る。 | B-2（共通不具合のとき） |
 
 ### A) 毎回（数秒）：開発に入る前の固定ルーティン
@@ -127,7 +127,7 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 2. 各プロジェクト側で `dev-start` を実行して、サブモジュール `cursor_rules` を最新に更新
 3. そのプロジェクトのルートで、もう一度 B-2 のコマンドを実行する
 
-#### B-3. Rules に 6 本の `.mdc` が未登録（パス指定の手動登録が必要）
+#### B-3. Rules に 7 本の `.mdc` が未登録（パス指定の手動登録が必要）
 
 **`.mdc` がディスク上にあっても、Cursor が必ず自動でルール登録してくれるわけではない。**  
 ただし、**設定同期などの影響で「最初から Rules 一覧に出ている」こともある**ので、次の順で進める（= **まず確認 → 無ければ登録**）。
@@ -146,10 +146,10 @@ git -C "<プロジェクトルート>\cursor_rules" restore .cursor/rules
 git -C "<プロジェクトルート>\cursor_rules" restore .cursor/rules/venv-only-common.mdc
 ```
 
-1. Cursor で **Settings（設定）** → **Rules**（または **Cursor Settings → Rules**）を開き、**6本が一覧にあるか確認**  
-2. **すでに6本ある** → OK（登録作業は不要。以降は dev-start で中身が更新される）  
+1. Cursor で **Settings（設定）** → **Rules**（または **Cursor Settings → Rules**）を開き、**7本が一覧にあるか確認**  
+2. **すでに7本ある** → OK（登録作業は不要。以降は dev-start で中身が更新される）  
 3. **無い／足りない** → **Add Rule** / **ルールを追加** → **ファイルから追加**（表記はバージョンで多少違う）  
-4. 次の **フォルダ**にある **6 ファイルすべて**を追加し、**それぞれ `alwaysApply: true`**（常に適用）にする  
+4. 次の **フォルダ**にある **7 ファイルすべて**を追加する。`markdown-common.mdc` は **`globs: "**/*.md"`** と **`alwaysApply: false`**、それ以外 6 本は **`alwaysApply: true`**（常に適用）にする  
 
 **登録元フォルダ（エクスプローラーで開くとき）**
 
@@ -159,22 +159,23 @@ git -C "<プロジェクトルート>\cursor_rules" restore .cursor/rules/venv-o
 <プロジェクトルート>\cursor_rules\.cursor\rules\
 ```
 
-**追加する 6 ファイル名（すべて `alwaysApply: true`）**
+**追加する 7 ファイル名**
 
-| ファイル名 |
-|------------|
-| `venv-only-common.mdc` |
-| `errors-debug-unittest-common.mdc` |
-| `post-modification-common.mdc` |
-| `gui-build-security-common.mdc` |
-| `markdown-common.mdc` |
-| `update-management-common.mdc` |
+| ファイル名 | 適用の目安 |
+|------------|------------|
+| `venv-only-common.mdc` | `alwaysApply: true` |
+| `errors-debug-unittest-common.mdc` | `alwaysApply: true` |
+| `post-modification-common.mdc` | `alwaysApply: true` |
+| `gui-build-security-common.mdc` | `alwaysApply: true` |
+| `markdown-common.mdc` | `globs: "**/*.md"` と `alwaysApply: false` |
+| `update-management-common.mdc` | `alwaysApply: true` |
+| `checklist-a-all-rules-common.mdc` | `alwaysApply: true` |
 
 **完全パス例（`D:` やフォルダ名は自分の環境に合わせて置き換え）**
 
 ```text
 D:\pyscript\tool\あなたのプロジェクト\cursor_rules\.cursor\rules\venv-only-common.mdc
-（以下、上記6本それぞれ同様に指定）
+（以下、上記7本それぞれ同様に指定）
 ```
 
 ---
@@ -196,7 +197,7 @@ D:\pyscript\tool\あなたのプロジェクト\cursor_rules\.cursor\rules\venv-
 
 - **共通認識を“自動で効かせる”担当（最重要）**：Cursor の Rules に登録した `.mdc`（`alwaysApply: true`）
   - ポイント：`.mdc` は **存在するだけでは自動で適用されないことがある**。一方で、設定同期などで **最初から登録済みのこともある**。  
-    → なので **B-3 は「Rules一覧で6本あるか確認」だけを毎プロジェクト最初にやる**（無ければ追加する）
+    → なので **B-3 は「Rules一覧で7本あるか確認」だけを毎プロジェクト最初にやる**（無ければ追加する）
 - **「運用のマスタ説明書」担当**：`cursor_instructions_template.md`
   - ポイント：タスクやスクリプトは、この Markdown を AI に“自動注入”する機能ではない（人間＋AIが参照する説明書）
 - **「毎回の開始操作をブレなくする」担当（最強のトリガー＝クリック運用）**：Cursor の **タスクの実行…** → `dev-start`
@@ -250,17 +251,18 @@ D:\pyscript\tool\あなたのプロジェクト\cursor_rules\.cursor\rules\venv-
       │  │     ├─ メニュー: `ターミナル(T)` → `タスクの実行…`
       │  │     └─ 一覧から `dev-start (cursor_rules submodule)` を選ぶ
       │  └─ 代替：ターミナル運用（コマンド直打ち）でも 2) は実行できる → そのまま次へ
-      └─ Cursor の Rules に、cursor_rules の .mdc（6本）は登録済み？
+      └─ Cursor の Rules に、cursor_rules の .mdc（7本）は登録済み？
          ├─ いいえ（最初の1回だけ）
          │  └─ 【最初の1回だけ】Rules登録（重要）
          │     ├─ 登録元（サブモジュール内）: `<プロジェクトルート>/cursor_rules/.cursor/rules/`
-         │     ├─ 登録する6本（すべて `alwaysApply: true`）
+         │     ├─ 登録する7本（`markdown-common.mdc` のみ `globs` + `alwaysApply: false`、それ以外は `alwaysApply: true`）
          │     │  ├─ `venv-only-common.mdc`
          │     │  ├─ `errors-debug-unittest-common.mdc`
          │     │  ├─ `post-modification-common.mdc`
          │     │  ├─ `gui-build-security-common.mdc`
          │     │  ├─ `markdown-common.mdc`
-         │     │  └─ `update-management-common.mdc`
+         │     │  ├─ `update-management-common.mdc`
+         │     │  └─ `checklist-a-all-rules-common.mdc`
          │     └─ 手順の詳細: **本ページ冒頭「毎日ここだけ見る」→ B-3**（この1画面にコマンド・パスあり）
          └─ はい（以降は通常運用へ）
       ├─ 【リモートリポジトリ（親GitHub）の更新まで含めたい】＝他人/別PCにも反映したい
@@ -326,7 +328,7 @@ git push
 
 ### 【最初の1回だけ】Rules登録（重要：共通認識を“自動で効かせる”）
 
-`cursor_rules` をサブモジュールとして置いただけでは、Cursor が `.mdc` を勝手にルール登録してくれるわけではありません。**最初の1回だけ**、Cursor の Rules に次の 6 本を登録します（すべて `alwaysApply: true`）。
+`cursor_rules` をサブモジュールとして置いただけでは、Cursor が `.mdc` を勝手にルール登録してくれるわけではありません。**最初の1回だけ**、Cursor の Rules に次の 7 本を登録します（`markdown-common.mdc` のみ `globs` + `alwaysApply: false`、それ以外 6 本は `alwaysApply: true`）。
 
 - 登録元（サブモジュール内）：`<プロジェクトルート>/cursor_rules/.cursor/rules/`
   - `venv-only-common.mdc`
@@ -335,6 +337,7 @@ git push
   - `gui-build-security-common.mdc`
   - `markdown-common.mdc`
   - `update-management-common.mdc`
+  - `checklist-a-all-rules-common.mdc`
 
 この「最初の1回」が終われば、以降は **2)（開発開始＝dev-start）**を回すだけで、共通ルールが安定して効くようになります。
 

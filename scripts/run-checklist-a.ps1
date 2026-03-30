@@ -157,13 +157,14 @@ function Print-ChecklistA() {
   Write-Host "Purpose: prevent skipped checks. Do not mark done without execution."
   Write-Host ""
   Write-Host "1. cursor_rules submodule exists and is fetched."
-  Write-Host "2. Required 6 .mdc files exist under .cursor/rules."
+  Write-Host "2. Required 7 .mdc files exist under .cursor/rules."
   Write-Host "   - venv-only-common.mdc"
   Write-Host "   - errors-debug-unittest-common.mdc"
   Write-Host "   - post-modification-common.mdc"
   Write-Host "   - gui-build-security-common.mdc"
   Write-Host "   - markdown-common.mdc"
   Write-Host "   - update-management-common.mdc"
+  Write-Host "   - checklist-a-all-rules-common.mdc"
   Write-Host "3. Markdown TOC rules for all .md files (fix then check)."
   Write-Host "4. Unit tests (pytest/unittest) when .venv and tests/ exist."
   Write-Host ""
@@ -255,7 +256,7 @@ if ($checkFlags.enforceCoverageMap -and $coverageTargets.Count -eq 0) { Fail "Po
 if ($checkFlags.enforceRequirementMap -and $null -eq $requirementIdsMap) { Fail "Policy requirementIds is missing" }
 if ($checkFlags.enforceRequirementClassification -and $null -eq $requirementIdsMap) { Fail "Policy requirementIds is missing" }
 
-Step "Check required 6 mdc files"
+Step "Check required mdc files"
 foreach ($name in $requiredMdc) {
   $p = Join-Path $rulesDir $name
   if (-not (Test-Path -LiteralPath $p)) {
@@ -287,7 +288,7 @@ foreach ($label in $requiredTaskLabels) {
 }
 
 if ($checkFlags.enforceSpecSync) {
-  Step "Check 6 mdc content (full-content hash from SPEC)"
+  Step "Check mdc content (full-content hash from SPEC)"
   $specPath = Join-Path $cursorRules "spec\\checklist_a_requirements.json"
   if (-not (Test-Path -LiteralPath $specPath)) {
     Fail ("Missing spec file: " + $specPath)

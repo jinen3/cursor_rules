@@ -19,7 +19,8 @@ $requiredMdc = @(
   "post-modification-common.mdc",
   "gui-build-security-common.mdc",
   "markdown-common.mdc",
-  "update-management-common.mdc"
+  "update-management-common.mdc",
+  "checklist-a-all-rules-common.mdc"
 )
 
 $rulesDir = Join-Path $root ".cursor\\rules"
@@ -40,7 +41,7 @@ if ($missing.Count -gt 0) {
   exit 1
 }
 
-Write-Host "OK: 6 required .mdc files exist."
+Write-Host "OK: 7 required .mdc files exist."
 
 Write-Host ""
 Write-Host "Running markdown TOC check (no fix)."
