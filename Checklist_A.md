@@ -10,6 +10,7 @@
 - [最新の .mdc 内容が検証に反映される仕組み](#sec-fresh)
 - [`git submodule update` だけで `.vscode/tasks.json` は揃うか](#sec-tasks-vs-sub)
 - [エージェントが Checklist A を実行しなかった理由](#sec-why-skip-agent)
+- [Checklist A は Cursor 上で「強制」できるか](#sec-enforcement)
 
 ---
 
@@ -128,3 +129,12 @@ Checklist A は、`cursor_rules` の **7本**の `.mdc`（領域別 6 本 + **Ch
 - **「ルールに書いてないから」ではない。** §1.1・各 `.mdc` に、完了報告の前に Checklist A を実行しとある。
 - **典型的な抜け:** ① **エディタは自動でチェックを起動しない**（手順またはタスクで明示実行が必要）② **pytest のみ等で「十分」と誤結論**（Checklist A は別物：.mdc ハッシュ、TOC、タスク配線、サブモジュール等の統合）③ **エージェントの一貫性**（毎ターンで必ず実行する保証はない）。
 - **対策:** Cursor（エージェント）は **完了報告の直前に** `run-checklist-a.ps1` を実行し、**exit code またはログ要約をチャットに書く**（`cursor_instructions_template.md` §1.1「Cursor（エージェント）の完了報告ゲート」）。
+
+---
+
+<a id="sec-enforcement"></a>
+## Checklist A は Cursor 上で「強制」できるか
+
+- **完全な強制（チャット送信や完了報告をブロックする OS／エディタ機能）はない。** 「Checklist A 未実行なら送信不可」といった仕組みは Cursor 標準にはない。
+- **機械的に効くもの:** ① **`run-checklist-a.ps1` を実行した結果が FAIL** なら、その時点では **ルール上「作業完了」と言えない**（スクリプトが exit code 非ゼロ）② **CI（例：GitHub Actions）で同スクリプトを走らせ、FAIL ならマージ不可**にすれば、リポジトリ単位では **かなり強い拘束**になる（要：ワークフロー設定）。
+- **それ以外:** ルール文書・§1.1 の「完了報告ゲート」は **運用とエージェントの遵守**に依存する。**pytest だけでは代替にならない**ことは、スクリプト側の検証内容が別物だからである。
