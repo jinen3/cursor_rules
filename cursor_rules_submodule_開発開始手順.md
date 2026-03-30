@@ -26,7 +26,7 @@
 
 | いつ | 章 | 目的 | 手法 | 手順 | やること | 備考 | 参考 |
 |---|---|---|---|---|---|---|---|
-| 毎回 | **A 1** | サブモジュール最新化 | Cursor機能（タスク実行） | ターミナル(T) → タスクの実行… → **`dev-start (cursor_rules submodule)`** 選択実行<br>**【警告】`dev-start (submodule init only / SkipRemote)` を選ぶと「最新化」はされません（取得だけ）。** | dev-start（サブモジュールの中身を取得＋最新化）をclick実行 | サブモジュール（=ルール）を最新化。 | B-2,B-1 |
+| 毎回 | **A 1** | サブモジュール最新化 | Cursor機能（タスク実行） | ターミナル(T) → タスクの実行… → **`dev-start (cursor_rules submodule)`** 選択実行<br><br>**【警告】`dev-start (submodule init only / SkipRemote)` を選ぶと「最新化」はされません（取得だけ）。** | dev-start（サブモジュールの中身を取得＋最新化）をclick実行 | サブモジュール（=ルール）を最新化。 | B-2,B-1 |
 | 毎回 | **A 1（中身）** | サブモジュール取得＋更新（コマンド） | Cursor機能（タスク実行）できないとき、<br>コマンドライン（Ctrl+SHIFT+@） | `git submodule update --init --recursive`（未取得/未初期化を解消）<br>`git submodule update --remote cursor_rules`（必要ならリモート最新へ更新）<br><br>（短縮コマンド）`git submodule update --init --remote --recursive cursor_rules`<br><br>※短縮コマンド<br>・メリット：短い・コピペしやすい<br>・デメリット：何が起きたか分かりにくい（init/remote の切り分けがしづらい） | サブモジュールを取得＋更新 | GitHubからサブモジュールの中身を取得して、更新(最新に) | ※ **A1A2完了⇒開発開始** 行の「手順」を参照 |
 | 毎回 | **A 2** | GitHub更新 | Cursor_GitHub連携（Ctrl+Shift+G） | Ctrl+Shift+G（ソース管理）→ cursor_rules (new commits) が出ていれば ステージ → コミット → 同期/プッシュ<br><br>（定型コミット文言／ルール最新化の共有）`Update cursor_rules submodule pointer to GitHub(ルール最新化をGitHubへ反映)` | ソース管理で更新の有無確認 → ステージ → コミット → 同期/プッシュ | 最新サブモジュールをGitHubに反映。 | ※ **A1A2完了⇒開発開始** 行の「手順」を参照 |
 | A1A2完了⇒開発開始 | — | — | — | ◆A) 毎回（数秒）：開発に入る前の固定ルーティン<br>⇒A1 A2を実行することで、<br>A1.GitHub上の最新サブモジュール=ルールをローカルのプロジェクト側に取得して、ローカルのサブモジュール＝ルールを最新化する。<br>A2.ローカルの親プロジェクトのサブモジュールのポインタが最新に更新されたので、チームで共有できるようにGitHub側へ反映する。<br>Aが完了したら、ローカルプロジェクトへの共通ルールが最新版に更新できたので、開発開始可能！ | — | — | ー |
