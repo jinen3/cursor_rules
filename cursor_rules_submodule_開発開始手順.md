@@ -67,6 +67,7 @@ A1・A2の役割と「A完了後に開発開始できる」理由のまとめは
     - つまり「サブモジュールの中身が取得できて、いまどの版（どのコミット）を使っているか」が表示できている＝成功の目印
   - `setup-tasks-link` の確認：プロジェクト直下に `.vscode/tasks.json` が作られ、`ターミナル(T)` → `タスクの実行…` を開いたときに **`dev-start (cursor_rules submodule)` が一覧に表示される**
     - つまり「`.vscode/tasks.json`（= タスク読み込み用の設定ファイル（テンプレ））が読み込まれて、クリックで dev-start を起動できる状態になった」＝成功の目印
+  - **Checklist A 用タスクの確認（推奨）**：一覧に **`run: checklist A (all rules)`** など、`update-management-common.mdc` の `CHECKLIST_A_POLICY` にある **`requiredTaskLabels` と同じ名前のタスク**が並んでいること。欠けると Checklist A は **`upd.checklist_task_wired` で FAIL** する。**`git submodule update` だけでは `tasks.json` は増えない**（B-2 のテンプレ／リンクが別途必要）。テンプレは `cursor_rules/templates/vscode_tasks.tasks.json.example`。
   - **注意（SkipRemote / update skipped の意味）**：タスク実行で `SkipRemote specified: remote update is skipped.` と出た場合、**最新化（--remote）がスキップされ、取得だけ**になっています。
     - 最新化したいときは、`-SkipRemote` が付いていない `dev-start (cursor_rules submodule)` を実行します（clone直後の「取得だけ」用途が `-SkipRemote` です）。
 

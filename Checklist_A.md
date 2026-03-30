@@ -8,6 +8,8 @@
 - [手動確認が必要になる条件（WEBのみ）](#sec5)
 - [実行タイミング（いつ実行するか）](#sec-timing)
 - [最新の .mdc 内容が検証に反映される仕組み](#sec-fresh)
+- [`git submodule update` だけで `.vscode/tasks.json` は揃うか](#sec-tasks-vs-sub)
+- [エージェントが Checklist A を実行しなかった理由](#sec-why-skip-agent)
 
 ---
 
@@ -108,3 +110,21 @@ Checklist A は、`cursor_rules` の **7本**の `.mdc`（領域別 6 本 + **Ch
 - **はい（前提を満たせば）。** Checklist A は、プロジェクト内の **`cursor_rules` サブモジュール**にある **実ファイル**（`.cursor/rules/*.mdc`）と、同梱の **`spec/checklist_a_requirements.json`** の **SHA-256** を照合する。
 - **共通側で `.mdc` を編集したら** `sync-checklist-a-spec.ps1` で `spec` を更新し、push したうえで、各プロジェクトは **`git submodule update --remote cursor_rules`** などで **手元のサブモジュールを最新にする**こと。古いサブモジュールのままでは、GitHub 上の最新ルールは手元に来ない。
 - `.mdc` を変えたのに `spec` を更新していないと、Checklist A は **FAIL（mdc changed but spec not synced）** になる。これにより「最新のルール本文」と「記録されているハッシュ」がずれないようになっている。
+
+---
+
+<a id="sec-tasks-vs-sub"></a>
+## `git submodule update` だけで `.vscode/tasks.json` は揃うか
+
+- **いいえ（別対応）。** `git submodule update --init --recursive` や `git submodule update --remote cursor_rules` は、**サブモジュール内**（`cursor_rules/` 以下）のスクリプトと `.mdc` を最新にする。**親リポジトリの `.vscode/tasks.json` は書き換えない**。
+- Checklist A の **タスク配線**（`upd.checklist_task_wired`）は、親の **`tasks.json` に `requiredTaskLabels` と一致する `label` があるか**で検証する。正は **`cursor_rules/templates/vscode_tasks.tasks.json.example`**。**`setup-tasks-link.ps1`**（開発開始手順の B-2）でこのテンプレにリンクするか、同じラベルを手で追記する。
+- **共通リポジトリ（cursor_rules）**では、`check: cursor_rules sanity` が **テンプレに必須ラベルがすべて含まれるか**も検証する（テンプレとポリシーの乖離を防ぐ）。
+
+---
+
+<a id="sec-why-skip-agent"></a>
+## エージェントが Checklist A を実行しなかった理由
+
+- **「ルールに書いてないから」ではない。** §1.1・各 `.mdc` に、完了報告の前に Checklist A を実行しとある。
+- **典型的な抜け:** ① **エディタは自動でチェックを起動しない**（手順またはタスクで明示実行が必要）② **pytest のみ等で「十分」と誤結論**（Checklist A は別物：.mdc ハッシュ、TOC、タスク配線、サブモジュール等の統合）③ **エージェントの一貫性**（毎ターンで必ず実行する保証はない）。
+- **対策:** Cursor（エージェント）は **完了報告の直前に** `run-checklist-a.ps1` を実行し、**exit code またはログ要約をチャットに書く**（`cursor_instructions_template.md` §1.1「Cursor（エージェント）の完了報告ゲート」）。

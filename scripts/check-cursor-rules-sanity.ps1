@@ -43,6 +43,47 @@ if ($missing.Count -gt 0) {
 
 Write-Host "OK: 7 required .mdc files exist."
 
+$updateMdc = Join-Path $rulesDir "update-management-common.mdc"
+$tasksTemplate = Join-Path $root "templates\\vscode_tasks.tasks.json.example"
+Write-Host ""
+Write-Host "Verifying vscode_tasks.tasks.json.example vs CHECKLIST_A_POLICY requiredTaskLabels..."
+$policyText = [System.IO.File]::ReadAllText($updateMdc, [System.Text.Encoding]::UTF8)
+$m = [Regex]::Match(
+  $policyText,
+  '<!-- CHECKLIST_A_POLICY_START -->\s*```json\s*(?<json>\{[\s\S]*?\})\s*```\s*<!-- CHECKLIST_A_POLICY_END -->',
+  [System.Text.RegularExpressions.RegexOptions]::Singleline
+)
+if (-not $m.Success) {
+  Write-Host "FAIL: Missing CHECKLIST_A_POLICY block in update-management-common.mdc"
+  exit 1
+}
+$policy = $m.Groups["json"].Value.Trim() | ConvertFrom-Json
+$labels = @($policy.requiredTaskLabels)
+if ($labels.Count -eq 0) {
+  Write-Host "FAIL: Policy requiredTaskLabels is empty"
+  exit 1
+}
+if (-not (Test-Path -LiteralPath $tasksTemplate)) {
+  Write-Host ("FAIL: Missing tasks template: " + $tasksTemplate)
+  exit 1
+}
+$tasksJson = Get-Content -LiteralPath $tasksTemplate -Raw -Encoding UTF8 | ConvertFrom-Json
+$present = @{}
+foreach ($t in @($tasksJson.tasks)) {
+  if ($null -ne $t.label) { $present[[string]$t.label] = $true }
+}
+$missingLabels = @()
+foreach ($lab in $labels) {
+  if (-not $present.ContainsKey([string]$lab)) { $missingLabels += [string]$lab }
+}
+if ($missingLabels.Count -gt 0) {
+  Write-Host "FAIL: templates/vscode_tasks.tasks.json.example is missing required task label(s):"
+  foreach ($x in $missingLabels) { Write-Host ("- " + $x) }
+  Write-Host "Fix: add tasks with these exact labels, or update CHECKLIST_A_POLICY if intentional."
+  exit 1
+}
+Write-Host "OK: tasks template contains all requiredTaskLabels from policy."
+
 Write-Host ""
 Write-Host "Running markdown TOC check (no fix)."
 & powershell -ExecutionPolicy Bypass -File (Join-Path $root "scripts\\check-markdown-toc.ps1") -RootPath $root

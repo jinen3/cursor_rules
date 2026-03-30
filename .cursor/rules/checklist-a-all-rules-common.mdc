@@ -44,6 +44,16 @@ alwaysApply: true
 - **いつ実行するか:** 依頼対応の作業が一区切りついた **あと**、**完了報告の前**。詳細はリポジトリ直下の **`Checklist_A.md`**（「実行タイミング」）を参照する。
 - **検証にどう反映されるか（仕組み）:** 手元の **`cursor_rules` サブモジュール**が最新で、`.mdc` 変更に **`spec` が同期**されていれば、ハッシュ照合で **その実ファイルの本文**が検証される。サブモジュールを古いままにしたり、`spec` を更新せずに `.mdc` だけ変えると FAIL になる。詳細は **`Checklist_A.md`**（「最新の .mdc 内容が検証に反映される仕組み」）を参照する。
 
+## プロジェクト側の前提（`.vscode/tasks.json` と `upd.checklist_task_wired`）
+
+- Checklist A は、親リポジトリの `.vscode/tasks.json` に **`CHECKLIST_A_POLICY` の `requiredTaskLabels` と一致する `label`** があるか検証する（`upd.checklist_task_wired`）。**欠けると FAIL**。
+- **正**は `cursor_rules/templates/vscode_tasks.tasks.json.example`。**`setup-tasks-link.ps1`**（開発開始手順 B-2）でリンクする。**`git submodule update` だけでは `.vscode/tasks.json` は自動では埋まらない**（サブモジュールと親の配線は別）。
+- **`git submodule update` だけで足りるか**・**エージェントが実行しなかった理由**は **`Checklist_A.md`**（「`git submodule update` だけで…」「エージェントが Checklist A を実行しなかった理由」）を参照する。
+
+## Cursor（エージェント）の完了報告ゲート
+
+- **完了報告の前に** `run-checklist-a.ps1` を実際に実行し、**exit code またはログ要約をチャットに書く**（pytest 等の代替ではない）。詳細は **`cursor_instructions_template.md` §1.1** の同見出し。
+
 ## 変更後の必須チェック（すり抜け防止）
 
 - どの依頼でも、完了報告の前に **Checklist A（統合チェック）** を必ず実行する：

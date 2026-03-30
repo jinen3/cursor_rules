@@ -2,7 +2,7 @@
 
 **役割:** この文書は Cursor が読んで実行する指示書である。**この文書は .mdc ではない。** Markdown（.md）であり、共通リポジトリ（cursor_rules）のルートに置く「マスタ指示文書」である。次の 7 本の .mdc（venv-only-common.mdc, errors-debug-unittest-common.mdc, post-modification-common.mdc, gui-build-security-common.mdc, markdown-common.mdc, update-management-common.mdc, checklist-a-all-rules-common.mdc）は .cursor/rules/ に置く個別ルールで、本ファイル（cursor_instructions_template.md）はその一覧・使い方・更新手順を一括で示す。人間向けの説明は別ファイル `Cursor開発共通ルール_ユーザー向け説明.md` に記載する。
 
-**リビジョン:** 7  
+**リビジョン:** 8  
 **更新日:** 2026-03-30
 
 ## 目次
@@ -68,6 +68,17 @@
 #### 詳細・FAQ（実行タイミング・`.mdc` 内容の検証反映）
 
 - **`Checklist_A.md`** の「[実行タイミング（いつ実行するか）](Checklist_A.md#sec-timing)」「[最新の .mdc 内容が検証に反映される仕組み](Checklist_A.md#sec-fresh)」を参照する。
+
+#### プロジェクト側の前提（`.vscode/tasks.json` と `upd.checklist_task_wired`）
+
+- Checklist A は、親リポジトリの `.vscode/tasks.json` に **`CHECKLIST_A_POLICY` の `requiredTaskLabels` と一致する `label`** があるか検証する（`upd.checklist_task_wired`）。**欠けると FAIL** する。
+- **正（ソース・オブ・トゥルース）**は `cursor_rules/templates/vscode_tasks.tasks.json.example` である。**`cursor_rules_submodule_開発開始手順.md` の B-2** の `setup-tasks-link.ps1` でこのファイルへ **シンボリックリンク**（またはコピー）する。**`git submodule update` だけでは `.vscode/tasks.json` は自動では埋まらない**（サブモジュール内のスクリプトと、親リポジトリのタスク配線は別物）。
+- テンプレが更新されたら、プロジェクトでは **`setup-tasks-link.ps1 -Force`** で再リンクするか、不足している `label` を手で追記する。
+
+#### Cursor（エージェント）の完了報告ゲート
+
+- **完了報告を書く前に**、**`run-checklist-a.ps1` を実際に実行**し、**そのチャットに exit code（またはログ要約）を書く**（「実行したつもり」「pytest だけで代替」は不可）。実行方法は **`タスクの実行…` → `run: checklist A (all rules)`** か、ターミナルで `powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\run-checklist-a.ps1 -ProjectRoot <プロジェクトルート>`。
+- **ルール未整備が理由ではない。** §1.1・各 `.mdc` に「完了報告の前に Checklist A」とある。**エディタはチャット終了で自動起動しない**ため、**明示的に実行する**。エージェントの毎応答で手順を踏む保証は機械的にはないため、**このゲートを完了報告の直前に必ず挟む**。
 
 **【Cursor対応項目】** 共通ルールの順守は **Markdown 目次だけ**ではなく、venv・テスト・事後手順・セキュリティ・更新管理など **すべての領域別 `.mdc`** にまたがる。それらを **抜け漏れなく機械検証する本体**である **Checklist A** の役割を、`checklist-a-all-rules-common.mdc` で明示する。
 
