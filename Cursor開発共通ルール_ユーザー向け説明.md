@@ -77,6 +77,9 @@
 - **WEB と非WEB:** **WEB実装が検出されたプロジェクトだけ**一部ルールで **手動確認**。**非WEB** は out of scope、**自動チェックのみ**で当該手動項目は完了扱い。
 - **実行（1クリック）:** `ターミナル(T)` → `タスクの実行…` → **`run: checklist A (all rules)`**
 - **詳細・FAQ（実行タイミング・`.mdc` 内容の検証反映）:** `cursor_rules` ルートの **`Checklist_A.md`** を参照する。
+- **検証の仕組み:** Checklist A は **最新の `.mdc` 内容が検証に反映される仕組み**である。手元の **`cursor_rules` サブモジュール**にある **実 `.mdc` ファイルの本文**と、同梱の **`spec/checklist_a_requirements.json`**（各 `.mdc` 全文のハッシュ）を照合する。詳細は **`Checklist_A.md`**（「最新の .mdc 内容が検証に反映される仕組み」）を参照する。
+- **`.mdc` の更新（プロジェクト側）:** プロジェクトでは **`git submodule update --remote cursor_rules`** や **`dev-start`** などでサブモジュールを最新化すると、**`cursor_rules/.cursor/rules/*.mdc` がリポジトリ上の最新版に置き換わる**（ルール実体の取り込み。手作業コピーではない）。
+- **`spec` の更新（共通リポジトリ側）:** 共通側で `.mdc` を編集したら **`sync-checklist-a-spec.ps1`** を実行し、**`spec` を `.mdc` に合わせて更新**する（Checklist A がハッシュ照合できるようにするため）。
 
 ---
 
