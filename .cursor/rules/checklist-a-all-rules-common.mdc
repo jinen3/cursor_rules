@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Checklist A（全共通 .mdc の順守チェック）
 
-本ファイルは、次の **6 本の領域別ルール**だけを並べるのではなく、**それらすべてをまとめて機械で検証する本体**である **Checklist A** を、共通ルールとして明示する。
+本ファイルは、次の **6 本の領域別ルール**に加え、本ファイル自身を含む **計 7 本**の `.mdc` をまとめて機械で検証する本体である **Checklist A** を、共通ルールとして明示する。
 
 - `venv-only-common.mdc`（仮想環境）
 - `errors-debug-unittest-common.mdc`（テスト・デバッグ・知見）
@@ -13,6 +13,20 @@ alwaysApply: true
 - `gui-build-security-common.mdc`（GUI / ビルド / WEB セキュリティ）
 - `markdown-common.mdc`（Markdown・目次・TOC スクリプト）
 - `update-management-common.mdc`（更新管理・サブモジュール・Checklist A の機械可読ポリシー `CHECKLIST_A_POLICY`）
+- `checklist-a-all-rules-common.mdc`（本ファイル：Checklist A の統合・順守の明示）
+
+## 概要（一目で）
+
+- **開発タスク（依頼対応）が一区切りついたあと・完了報告の前**に、**Checklist A を必ず通す**運用とする。Cursor（エージェント）は可能な限り **`run: checklist A (all rules)` を実行してから**完了報告する（**手動でタスクを実行する**必要がある場合もある）。
+- 一度走らせると、スクリプトが **各 `.mdc` の本文まで**（`spec` のハッシュ一致）と、ポリシーに沿った **ランタイム検証**を **機械的に**行う。
+- Checklist A が **失敗したら**、原因を直し、**同じタスクをもう一度実行**する。**漏れない仕組み（Checklist A）を通るまで**回す。
+- **WEB実装が検出されたプロジェクトだけ**、一部ルールについて **手動確認**を要求する。デスクトップなど **非WEB** は **out of scope** とし、**自動チェックのみ**で当該手動項目は完了扱い。
+- **実行（1クリック）:** `ターミナル(T)` → `タスクの実行…` → **`run: checklist A (all rules)`**
+
+## 「自動」と「手動でタスク実行」の違い
+
+- **スクリプト内部の検証は自動**（ハッシュ・TOC・テスト・ランタイム検証など）。
+- **エディタがチャット終了を検知して自動で Checklist A を起動する**わけではない。運用ルール上、**完了報告の前**に Checklist A を通す。**Cursor（エージェント）**は可能な限り実行する。**ユーザーが同じタスクを手動で実行する**場合もある。
 
 ## なぜこのファイルが必要か
 
@@ -21,9 +35,14 @@ alwaysApply: true
 
 ## Checklist A が行うこと（要点）
 
-- `cursor_rules` サブモジュール配下の **必須 `.mdc` が揃い、本文が `spec` と一致する**（`mdc` 更新時は `sync-checklist-a-spec.ps1` で `spec` を同期すること）。
+- `cursor_rules` サブモジュール配下の **必須 `.mdc` が揃い、本文が `spec` と一致する**（`.mdc` 更新時は `sync-checklist-a-spec.ps1` で `spec` を同期すること）。
 - `run-checklist-a.ps1` が **`update-management-common.mdc` 内の `CHECKLIST_A_POLICY`（JSON）** に従い、ランタイム検証・Markdown TOC（fix→check）・（該当時）単体テストなどを実行する。
 - **分野別ルールの要求 ID** と **ランタイムチェック**の対応（カバレッジ）がポリシー上、抜けないこと。
+
+## 実行タイミング・最新の .mdc（FAQ）
+
+- **いつ実行するか:** 依頼対応の作業が一区切りついた **あと**、**完了報告の前**。詳細はリポジトリ直下の **`Checklist_A.md`**（「実行タイミング」）を参照する。
+- **常に最新の `.mdc` が反映されるか:** 手元の **`cursor_rules` サブモジュール**が最新で、`.mdc` 変更に **`spec` が同期**されていれば、ハッシュ照合で **常にその実ファイルの内容**が検証される。サブモジュールを古いままにしたり、`spec` を更新せずに `.mdc` だけ変えると FAIL になる。詳細は **`Checklist_A.md`**（「最新の .mdc 内容は反映されるか」）を参照する。
 
 ## 変更後の必須チェック（すり抜け防止）
 

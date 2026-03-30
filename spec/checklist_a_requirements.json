@@ -20,16 +20,16 @@
                                                       "bytes_utf8_normalized":  2429
                                                   },
                 "markdown-common.mdc":  {
-                                            "sha256":  "7e1f141d3edf27e5afc139412fbfba8e9cb27a5d13eff89befb0ead4d9e4c11e",
-                                            "bytes_utf8_normalized":  3961
+                                            "sha256":  "4b9bc45723b35d00e7da77e047e6bc06d0db4162d0837e149f3eab3a024c2cfb",
+                                            "bytes_utf8_normalized":  4325
                                         },
                 "update-management-common.mdc":  {
-                                                     "sha256":  "e0e1562b7ea3f942b76e3a1b8b73db4d3f2f37e8ef7fb4dea1bd54c8754510ef",
-                                                     "bytes_utf8_normalized":  14339
+                                                     "sha256":  "1ea36f1177e376d576167cb7ec4a223035e645ce45ad0efe405b5f200d79c583",
+                                                     "bytes_utf8_normalized":  15240
                                                  },
                 "checklist-a-all-rules-common.mdc":  {
-                                                         "sha256":  "3dc5ed6e86da3ef9489e0b5e01054a5a8e8c455c8c3e7b223d91701e90ff939b",
-                                                         "bytes_utf8_normalized":  2443
+                                                         "sha256":  "5f640eeba241c8d8b52e8f37d4360ca52d0962ceb2a2c52b7a08183559689d08",
+                                                         "bytes_utf8_normalized":  4926
                                                      }
             }
 }

@@ -5,6 +5,7 @@
 > プレビューで目次リンクをジャンプするには **Markdown Preview Enhanced** をインストールし、**Ctrl+Alt+M** または右クリック「Open Preview」でプレビューを開く。標準プレビューでは目次リンクは動作しない。
 
 - [毎日ここだけ見る（入口）](#sec0)
+  - [Checklist A（開発タスク終了後）Q&A](#sec0-checklist-a-qa)
 - [この手順書のゴール](#sec1)
 - [背景（なぜこの手順？）](#sec2)
 - [全体フロー（ツリー）](#sec3)
@@ -34,6 +35,13 @@
 | 準備 | **B-2** | 最新化用のテンプレ準備 | コマンドライン（Ctrl+SHIFT+@） | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1`<br><br>（コピー更新時／上書きが必要な時）`powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1 -Force` | `.vscode/tasks.json` を作る（タスク読み込み用の設定ファイル（テンプレ）。共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | （tasks.json がGit管理対象のとき）`chore: update tasks.json for dev-start task`<br>B-1 |
 | 準備 | **B-3** | ルールの初回登録 | Cursor機能（Rules） | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>7 ファイル（`markdown-common.mdc` のみ `globs` + `alwaysApply: false`、それ以外 6 本は `alwaysApply: true`）<br><br>**【重要】RulesのDeleteは .mdc 実ファイル削除になることがある**ため、外したい時は **`Agent decides when to apply`** に切り替える（`git status` が `deleted` なら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules` ／特定ファイルなら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules/venv-only-common.mdc`） | 7本の `.mdc` を Rules にパス登録 | .mdc を自動適用して「共通ルール」をブレなく効かせる | ー |
 | いつでも | （ルール）共通不具合の直し方 | 迷わないための方針 | 共通不具合は共通側を直す | **共通側（d:\\pyscript\\cursor_rules）で修正→commit/push** → 各プロジェクトは **dev-start** で取り込む | **警告：目的を見失わない。** GitHub操作やルール整備に悩んで時間を溶かしがち。まず「何をやりたいか？」（=開発で結果を出す）に立ち返る。 | B-2（共通不具合のとき） |
+| 開発タスク終了後 | **Checklist A** | 開発タスクの全ルール適否を自動チェック | Cursor機能（タスク実行） | WEBプロジェクトでは `sec.use_safe_runtime_context` など **手動確認**を要求する場合がある。<br><br>**実行方法（1クリック）**<br>`ターミナル(T)` → `タスクの実行…` → `run: checklist A (all rules)`<br><br>非WEBプロジェクトでは、**自動チェックのみ**で完了（該当手動確認は out of scope）。 | Checklist A を通してから完了報告（失敗時は修正して同じタスクを再実行） | 機械検証＋（WEBのみ）手動確認 | `Checklist_A.md` |
+
+<a id="sec0-checklist-a-qa"></a>
+### Checklist A（開発タスク終了後）Q&A
+
+- **このチェックは、どのタイミングで実行されますか？** 依頼対応の作業が一区切りついた **あと**、**完了報告の前**です。エディタが自動で起動するわけではなく、Cursor（エージェント）が可能な限り `run: checklist A (all rules)` を実行するか、**ユーザーが同じタスクを手動で実行**します。詳細は `cursor_rules` ルートの **`Checklist_A.md`**（「実行タイミング」）を参照してください。
+- **このチェックには、常に最新の `.mdc` の内容が反映される仕組みになっていますか？** 手元の **`cursor_rules` サブモジュール**が最新で、`.mdc` 変更に **`spec/checklist_a_requirements.json` が同期**されていれば、**その実ファイルの本文**がハッシュ照合で検証されます。古いサブモジュールのままでは GitHub 上の最新ルールは手元に来ません。詳細は **`Checklist_A.md`**（「最新の .mdc 内容は反映されるか」）を参照してください。
 
 ### A) 毎回（数秒）：開発に入る前の固定ルーティン
 

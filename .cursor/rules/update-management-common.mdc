@@ -30,6 +30,13 @@ alwaysApply: true
 - **`mdc` 更新時は `spec` 同時更新を必須化：** 7本の `.mdc` のどれかを変更したら、**必ず** `cursor_rules/scripts/sync-checklist-a-spec.ps1` を実行して `spec/checklist_a_requirements.json` を更新する。`spec` は「7本 `.mdc` の全内容（正規化後）」のハッシュを保持する。**更新しないまま commit/push することは禁止**。
 - **判定の基準（抜け漏れ防止）：** `run: checklist A (all rules)` は 7本 `.mdc` それぞれについて「正規化済み全内容の SHA-256」を `spec/checklist_a_requirements.json` と照合する。一致しない場合は **FAIL（mdc changed but spec not synced）** として作業完了不可。
 
+## Checklist A 概要（一目で）
+
+- **開発タスク終了後・完了報告の前**に Checklist A を通す。スクリプトは **各 `.mdc` の本文まで**（`spec` ハッシュ）を **機械検証**する。失敗したら直し、**同じタスクを再実行し PASS まで**回す。
+- **スクリプト内部は自動**。**エディタが勝手に起動する**わけではない。Cursor（エージェント）は可能な限り `run: checklist A (all rules)` を実行する。**ユーザーがタスクから実行する**場合もある。
+- **WEB実装が検出されたプロジェクトだけ**一部 **手動確認**。**非WEB** は当該確認は **out of scope**、**自動チェックのみ**で完了。
+- **実行（1クリック）:** `ターミナル(T)` → `タスクの実行…` → **`run: checklist A (all rules)`**。詳細・FAQ は **`Checklist_A.md`**。
+
 ## Checklist A 固定運用（再現用）
 
 - 以下を固定運用とする。毎回この順序で実施すること。

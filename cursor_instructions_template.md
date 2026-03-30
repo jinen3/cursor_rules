@@ -2,7 +2,7 @@
 
 **役割:** この文書は Cursor が読んで実行する指示書である。**この文書は .mdc ではない。** Markdown（.md）であり、共通リポジトリ（cursor_rules）のルートに置く「マスタ指示文書」である。次の 7 本の .mdc（venv-only-common.mdc, errors-debug-unittest-common.mdc, post-modification-common.mdc, gui-build-security-common.mdc, markdown-common.mdc, update-management-common.mdc, checklist-a-all-rules-common.mdc）は .cursor/rules/ に置く個別ルールで、本ファイル（cursor_instructions_template.md）はその一覧・使い方・更新手順を一括で示す。人間向けの説明は別ファイル `Cursor開発共通ルール_ユーザー向け説明.md` に記載する。
 
-**リビジョン:** 5  
+**リビジョン:** 6  
 **更新日:** 2026-03-30
 
 ## 目次
@@ -51,6 +51,23 @@
 
 <a id="sec1-1"></a>
 ### 1.1 Checklist A（全共通 .mdc の順守チェック）
+
+#### 概要（一目で）
+
+- **開発タスク（依頼対応）が一区切りついたあと・完了報告の前**に、**Checklist A を必ず通す**運用とする。Cursor（エージェント）は共通ルールに従い、可能な限り **`run: checklist A (all rules)` を実行してから**完了報告する（**手動でタスクを実行する**必要がある場合もある）。
+- 一度走らせると、スクリプトが **各 `.mdc` の本文まで**（`spec` のハッシュ一致）と、ポリシーに沿った **ランタイム検証**を **機械的に**行う。
+- Checklist A が **失敗したら**、原因を直し、**同じタスクをもう一度実行**する。**漏れない仕組み（Checklist A）を通るまで**回す。
+- **WEB実装が検出されたプロジェクトだけ**、一部ルールについて **手動確認**を要求する。デスクトップなど **非WEB** は **out of scope** とし、**自動チェックのみ**で当該手動項目は完了扱い。
+- **実行（1クリック）:** `ターミナル(T)` → `タスクの実行…` → **`run: checklist A (all rules)`**
+
+#### 「自動」と「手動でタスク実行」の違い
+
+- **スクリプト内部の検証は自動**（各 `.mdc` 全文のハッシュ照合、TOC fix→check、該当時の単体テスト、ランタイム検証など）。
+- **エディタがチャット終了やファイル保存を検知して、勝手に Checklist A を起動する**わけではない。運用ルール上、**完了報告の前**に Checklist A を通す。**Cursor（エージェント）**は可能な限り `run: checklist A (all rules)` を実行する。**ユーザーが同じタスクを手動で実行する**場合もある。
+
+#### 詳細・FAQ（タイミング・最新の .mdc）
+
+- **`Checklist_A.md`** の「[実行タイミング（いつ実行するか）](Checklist_A.md#sec-timing)」「[最新の .mdc 内容は反映されるか](Checklist_A.md#sec-fresh)」を参照する。
 
 **【Cursor対応項目】** 共通ルールの順守は **Markdown 目次だけ**ではなく、venv・テスト・事後手順・セキュリティ・更新管理など **すべての領域別 `.mdc`** にまたがる。それらを **抜け漏れなく機械検証する本体**である **Checklist A** の役割を、`checklist-a-all-rules-common.mdc` で明示する。
 

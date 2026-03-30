@@ -38,6 +38,7 @@ alwaysApply: false
 - 目次が無いファイルが見つかったら、次で **自動で目次＋`<a id="secX"></a>` を追加**できる（バックアップ `.bak.<日時>` を作ってから編集する）。
   - `ターミナル(T)` → `タスクの実行…` → `fix: markdown toc (project)`
 - **Checklist A（統合）** を実行すると、上記 TOC の **fix→check** もまとめて走る。Markdown だけの話ではなく、**venv・テスト・セキュリティ・更新管理など他の共通 `.mdc` も** `checklist-a-all-rules-common.mdc` を含む **Checklist A** で一括検証される。
+- **Checklist A の全体像**（いつ実行するか、スクリプトは各 `.mdc` 本文まで機械検証、失敗時は同じタスクを再実行、WEB のみ手動確認・非WEB は out of scope、タスクの手動実行が必要な場合がある）は `cursor_rules` ルートの **`Checklist_A.md`**（「概要（一目で）」）を参照する。
 
 ## 変更後の必須チェック（すり抜け防止）
 
