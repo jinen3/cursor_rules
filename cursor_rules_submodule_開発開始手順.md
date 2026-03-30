@@ -26,9 +26,10 @@
 
 | いつ | 章 | 目的 | 手法 | 手順 | やること | 備考 | 参考 |
 |---|---|---|---|---|---|---|---|
-| 毎回 | **A 1** | サブモジュール最新化 | Cursor機能（タスク実行） | ターミナル(T) → タスクの実行… → **`dev-start (cursor_rules submodule)`** 選択実行<br>**【警告】`dev-start (submodule init only / SkipRemote)` を選ぶと「最新化」はされません（取得だけ）。** | dev-start（サブモジュールの中身を取得＋最新化）をclick実行 | サブモジュール（=ルール）を最新化。 | B-2,B-1<br><br>**A（毎回）** A1・A2を実行することで次を達成する。<br>**A1**：GitHub上の最新サブモジュール＝ルールをローカルのプロジェクト側に取得して、ローカルのサブモジュール＝ルールを最新化する。<br>**A2**：ローカルの親プロジェクトのサブモジュールのポインタが最新に更新されたので、チームで共有できるようにGitHub側へ反映する。<br>**Aが完了したら**：ローカルプロジェクトへの共通ルールが最新版に更新できたので、開発開始可能。 |
-| 毎回 | **A 1（中身）** | サブモジュール取得＋更新（コマンド） | コマンドライン（Ctrl+SHIFT+@） | `git submodule update --init --recursive`（未取得/未初期化を解消）<br>`git submodule update --remote cursor_rules`（必要ならリモート最新へ更新）<br><br>（短縮コマンド）`git submodule update --init --remote --recursive cursor_rules` | サブモジュールを取得＋更新 | GitHubからサブモジュールの中身を取得して、更新(最新に)<br><br>（短縮コマンドのメリット）短い・コピペしやすい<br>（短縮コマンドのデメリット）何が起きたか分かりにくい（init/remote の切り分けがしづらい）<br><br>（共有したい時の定型コミット文言）`Update cursor_rules submodule pointer to GitHub(ルール最新化をGitHubへ反映)` | ※上の **A 1（タスク）** 行の「備考」を参照 |
-| 毎回 | **A 2** | GitHub更新 | Cursor_GitHub連携（Ctrl+Shift+G） | Ctrl+Shift+G（ソース管理）→ cursor_rules (new commits) が出ていれば ステージ → コミット → 同期/プッシュ<br><br>（定型コミット文言／ルール最新化の共有）`Update cursor_rules submodule pointer to GitHub(ルール最新化をGitHubへ反映)` | ソース管理で更新の有無確認 → ステージ → コミット → 同期/プッシュ | 最新サブモジュールをGitHubに反映。 | ※上の **A 1（タスク）** 行の「備考」を参照 |
+| 毎回 | **A 1** | サブモジュール最新化 | Cursor機能（タスク実行） | ターミナル(T) → タスクの実行… → **`dev-start (cursor_rules submodule)`** 選択実行<br>**【警告】`dev-start (submodule init only / SkipRemote)` を選ぶと「最新化」はされません（取得だけ）。** | dev-start（サブモジュールの中身を取得＋最新化）をclick実行 | サブモジュール（=ルール）を最新化。 | B-2,B-1 |
+| 毎回 | **A 1（中身）** | サブモジュール取得＋更新（コマンド） | コマンドライン（Ctrl+SHIFT+@） | `git submodule update --init --recursive`（未取得/未初期化を解消）<br>`git submodule update --remote cursor_rules`（必要ならリモート最新へ更新）<br><br>（短縮コマンド）`git submodule update --init --remote --recursive cursor_rules` | サブモジュールを取得＋更新 | GitHubからサブモジュールの中身を取得して、更新(最新に)<br><br>（短縮コマンドのメリット）短い・コピペしやすい<br>（短縮コマンドのデメリット）何が起きたか分かりにくい（init/remote の切り分けがしづらい）<br><br>（共有したい時の定型コミット文言）`Update cursor_rules submodule pointer to GitHub(ルール最新化をGitHubへ反映)` | ※ **A1A2完了⇒開発開始** 行の「手順」を参照 |
+| 毎回 | **A 2** | GitHub更新 | Cursor_GitHub連携（Ctrl+Shift+G） | Ctrl+Shift+G（ソース管理）→ cursor_rules (new commits) が出ていれば ステージ → コミット → 同期/プッシュ<br><br>（定型コミット文言／ルール最新化の共有）`Update cursor_rules submodule pointer to GitHub(ルール最新化をGitHubへ反映)` | ソース管理で更新の有無確認 → ステージ → コミット → 同期/プッシュ | 最新サブモジュールをGitHubに反映。 | ※ **A1A2完了⇒開発開始** 行の「手順」を参照 |
+| A1A2完了⇒開発開始 | — | — | — | ◆A) 毎回（数秒）：開発に入る前の固定ルーティン<br>⇒A1 A2を実行することで、<br>A1.GitHub上の最新サブモジュール=ルールをローカルのプロジェクト側に取得して、ローカルのサブモジュール＝ルールを最新化する。<br>A2.ローカルの親プロジェクトのサブモジュールのポインタが最新に更新されたので、チームで共有できるようにGitHub側へ反映する。<br>Aが完了したら、ローカルプロジェクトへの共通ルールが最新版に更新できたので、開発開始可能！ | — | — | ー |
 | 準備 | **B-1** | サブモジュールの作成 | コマンドライン（Ctrl+SHIFT+@） | `git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules`<br>`git add .gitmodules cursor_rules`<br>`git commit -m \"Add cursor_rules submodule\"`<br>`git push` | サブモジュールを追加して push<br>`.gitmodules` に cursor_rules あり（サブモジュール追加済） | プロジェクトに 共通ルールcursor_rules を組み込む。 | ー |
 | 準備 | **B-2** | 最新化用のテンプレ準備 | コマンドライン（Ctrl+SHIFT+@） | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1`<br><br>（コピー更新時／上書きが必要な時）`powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1 -Force` | `.vscode/tasks.json` を作る（タスク読み込み用の設定ファイル（テンプレ）。共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | （tasks.json がGit管理対象のとき）`chore: update tasks.json for dev-start task`<br>B-1 |
 | 準備 | **B-3** | ルールの初回登録 | Cursor機能（Rules） | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>6 ファイル + alwaysApply: true<br><br>**【重要】RulesのDeleteは .mdc 実ファイル削除になることがある**ため、外したい時は **`Agent decides when to apply`** に切り替える（`git status` が `deleted` なら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules` ／特定ファイルなら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules/venv-only-common.mdc`） | 6本の `.mdc` を Rules にパス登録（alwaysApply） | .mdc を自動適用して「共通ルール」をブレなく効かせる | ー |
@@ -36,7 +37,7 @@
 
 ### A) 毎回（数秒）：開発に入る前の固定ルーティン
 
-A1・A2の役割と「A完了後に開発開始できる」理由のまとめは、**上の表の「A 1（タスク）」行の「備考」列**に記載しています。
+A1・A2の役割と「A完了後に開発開始できる」理由のまとめは、**上の表の「A1A2完了⇒開発開始」行の「手順」列**に記載しています。
 
 1. `ターミナル(T)` → `タスクの実行…` → **`dev-start (cursor_rules submodule)`** を選ぶ（サブモジュール=ルールを取得して最新化する）  
    - 一覧に **無い** → まず下の **B-2**（その前に **B-1** が未完了なら B-1 から）
