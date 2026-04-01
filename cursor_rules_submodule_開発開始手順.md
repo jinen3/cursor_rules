@@ -131,31 +131,38 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 - これで既存 `tasks.json` を **バックアップして作り直します**
 - 権限不足なら **コピーで代替しつつ、内容は最新になります**
 
-#### B-2 補足（管理者 `RunAs` で UAC のあと「何も起きない」とき）
+#### B-2 補足（管理者 `RunAs` で UAC のあと「何も起きない」とき／`Not a git repo root: C:\WINDOWS\system32`）
 
-**原因（多い）：** `Start-Process powershell -Verb RunAs ...` で開いた **管理者 PowerShell のカレントディレクトリ**は、いまの Cursor のフォルダとは限らず（例：`C:\Windows\System32`）。そのため **相対パス `.\cursor_rules\...` が解決できず**、スクリプトが即終了し、**ウィンドウが一瞬で消える**ように見える。
+**原因：** 管理者用に開いた PowerShell の **カレントは `C:\WINDOWS\system32` になりがち**です。`setup-tasks-link.ps1` は `-ProjectRoot` を省略すると **`(Get-Location)`＝カレント**をプロジェクトルートとみなすため、**`Not a git repo root: C:\WINDOWS\system32`** で止まります（添付のエラーと同じ）。
 
-**対策：** **プロジェクトルートのフルパス**を渡す（推奨は次のどちらか）。
+**対策（最優先）：スクリプトに `-ProjectRoot` でプロジェクトのフルパスを渡す**（カレントに依存しない）。
 
-**方法1（推奨）：`-WorkingDirectory` を付ける**
+Cursor のターミナルで **先にプロジェクトルートへ `cd`** してから：
 
-プロジェクトルートで実行：
+```powershell
+$root = (Get-Location).Path
+Start-Process powershell -Verb RunAs -ArgumentList @(
+  '-NoExit',
+  '-ExecutionPolicy', 'Bypass',
+  '-File', "$root\cursor_rules\scripts\setup-tasks-link.ps1",
+  '-Force',
+  '-ProjectRoot', $root
+)
+```
+
+- **`$root` は必ず Git リポジトリのルート**（`.git` があるフォルダ）。例：`D:\pyscript\tool\py_tool_daily_report`
+- **`-NoExit`**：成功/失敗メッセージを読むまでウィンドウを開いたままにする（確認後は外してよい）。
+
+**代替：`-WorkingDirectory` だけに頼る方法**（環境によっては管理者プロセスへ **渡らない**ことがある）
 
 ```powershell
 $root = (Get-Location).Path
 Start-Process powershell -Verb RunAs -WorkingDirectory $root -ArgumentList '-NoExit','-ExecutionPolicy','Bypass','-File',"$root\cursor_rules\scripts\setup-tasks-link.ps1",'-Force'
 ```
 
-- **`-NoExit`**：エラー時もウィンドウが開いたままになり、メッセージを読める（成功確認後は外してよい）。
+上でも **`Not a git repo root: ...\system32`** になる場合は、**上の `-ProjectRoot` 付き**を使うこと。
 
-**方法2：`-ProjectRoot` にフルパスを渡す**（`setup-tasks-link.ps1` がサポート）
-
-```powershell
-$p = (Get-Location).Path
-Start-Process powershell -Verb RunAs -ArgumentList "-ExecutionPolicy Bypass -File `"$p\cursor_rules\scripts\setup-tasks-link.ps1`" -Force -ProjectRoot `"$p`""
-```
-
-**確認：** 成功時は **`Symlink created:`** または **`Copied:`** が表示される。あわせて `Get-Item .\.vscode\tasks.json | Format-List LinkType, Target` でシンボリックリンクか確認できる。
+**確認：** 成功時は **`Symlink created:`** または **`Copied:`** が表示される。あわせて（通常のターミナルでプロジェクトルートから）`Get-Item .\.vscode\tasks.json | Format-List LinkType, Target` でシンボリックリンクか確認できる。
 
 **（ルール）全プロジェクト共通の不具合は「共通側」で直す**
 
