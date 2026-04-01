@@ -648,8 +648,13 @@ if ($runtimeChecks.Count -gt 0) {
       "project_no_open_bind" {
         $hits = Get-ChildItem -LiteralPath $root -Recurse -File -Include *.py,*.ps1,*.json,*.yml,*.yaml -ErrorAction SilentlyContinue |
           Where-Object { $_.FullName -notmatch [Regex]::Escape("\cursor_rules\") } |
-          Select-String -Pattern '0\.0\.0\.0' -SimpleMatch:$false -List
+          Select-String -Pattern '0\.0\.0\.0' -SimpleMatch:$false
         if ($null -ne $hits -and $hits.Count -gt 0) {
+          Write-Host ""
+          Write-Host ("Found 0.0.0.0 occurrences (first 20 shown):") -ForegroundColor Yellow
+          $hits | Select-Object -First 20 | ForEach-Object {
+            Write-Host ("- {0}:{1}: {2}" -f $_.Path, $_.LineNumber, ($_.Line.Trim()))
+          }
           Fail ("runtime check failed: " + $id + " (found 0.0.0.0 bind in project files)")
         }
         Write-Host ("OK runtime: " + $id)
