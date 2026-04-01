@@ -71,9 +71,26 @@ function Write-TextFileUtf8Bom([string]$path, [string[]]$lines) {
   [System.IO.File]::WriteAllText($path, $text, $utf8Bom)
 }
 
-function Should-ExcludeFile([string]$fullPath, [string[]]$excludeDirNames) {
+function Should-ExcludeFile([string]$fullPath, [string]$rootPath, [string[]]$excludeDirNames) {
+  # Exclusions should be based on path *inside* RootPath.
+  # Using the absolute path can accidentally exclude everything when RootPath itself matches
+  # an excluded dir name (e.g. repo folder name is "cursor_rules").
+  $rel = $fullPath
+  try {
+    $rp = $rootPath.TrimEnd('\', '/')
+    $fp = $fullPath
+    if ($fp.Length -ge $rp.Length -and $fp.Substring(0, $rp.Length).ToLowerInvariant() -eq $rp.ToLowerInvariant()) {
+      $rel = $fp.Substring($rp.Length).TrimStart('\', '/')
+    }
+  } catch {
+    $rel = $fullPath
+  }
+  $relNorm = ($rel -replace '\\', '/')
+
   foreach ($name in $excludeDirNames) {
-    if ($fullPath -match ("[\\/]" + [Regex]::Escape($name) + "[\\/]")) {
+    $n = ($name -replace '\\', '/').Trim('/')
+    if ([string]::IsNullOrWhiteSpace($n)) { continue }
+    if ($relNorm -match ("(^|/)" + [Regex]::Escape($n) + "(/|$)")) {
       return $true
     }
   }
@@ -206,7 +223,7 @@ Write-Host ("== Markdown TOC check ==")
 Write-Host ("RootPath: " + $root)
 
 $mdFiles = Get-ChildItem -LiteralPath $root -Recurse -File -Filter "*.md" | Where-Object {
-  -not (Should-ExcludeFile $_.FullName $ExcludeDirNames)
+  -not (Should-ExcludeFile $_.FullName $root $ExcludeDirNames)
 }
 
 $problems = New-Object System.Collections.Generic.List[string]
