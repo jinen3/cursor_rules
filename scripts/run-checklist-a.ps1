@@ -647,7 +647,15 @@ if ($runtimeChecks.Count -gt 0) {
       }
       "project_no_open_bind" {
         $hits = Get-ChildItem -LiteralPath $root -Recurse -File -Include *.py,*.ps1,*.json,*.yml,*.yaml -ErrorAction SilentlyContinue |
-          Where-Object { $_.FullName -notmatch [Regex]::Escape("\cursor_rules\") } |
+          Where-Object {
+            $_.FullName -notmatch [Regex]::Escape("\cursor_rules\") -and
+            $_.FullName -notmatch [Regex]::Escape("\.venv\") -and
+            $_.FullName -notmatch [Regex]::Escape("\.git\") -and
+            $_.FullName -notmatch [Regex]::Escape("\dist\") -and
+            $_.FullName -notmatch [Regex]::Escape("\build\") -and
+            $_.FullName -notmatch [Regex]::Escape("\node_modules\") -and
+            $_.FullName -notmatch [Regex]::Escape("\__pycache__\")
+          } |
           Select-String -Pattern '0\.0\.0\.0' -SimpleMatch:$false
         if ($null -ne $hits -and $hits.Count -gt 0) {
           Write-Host ""
