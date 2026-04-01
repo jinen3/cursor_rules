@@ -118,6 +118,52 @@ function Has-TocSection([string[]]$lines) {
   return $false
 }
 
+function Has-GarbledTocSection([string[]]$lines) {
+  # Common mojibake variants observed when "目次" is decoded with the wrong encoding.
+  # We treat them as TOC headers that should be rebuilt.
+  $patterns = @(
+    '^\s*##\s*逶ｮ谺｡\s*$'
+  )
+  foreach ($line in $lines) {
+    $clean = $line -replace [char]0xFEFF, ''
+    foreach ($p in $patterns) {
+      if ($clean -match $p) { return $true }
+    }
+  }
+  return $false
+}
+
+function Strip-ExistingTocBlock([string[]]$lines) {
+  # Remove an existing TOC block (including garbled headers) to allow rebuilding.
+  # We stop stripping when we reach the first real content marker (title heading or first <a id=...>).
+  $out = New-Object System.Collections.Generic.List[string]
+  $i = 0
+  $stripping = $false
+  while ($i -lt $lines.Length) {
+    $clean = ($lines[$i] -replace [char]0xFEFF, '')
+    if (-not $stripping) {
+      if ($clean -match '^\s*##\s*目次\s*$' -or $clean -match '^\s*##\s*逶ｮ谺｡\s*$') {
+        $stripping = $true
+        $i++
+        continue
+      }
+      $out.Add($clean) | Out-Null
+      $i++
+      continue
+    }
+
+    # stripping mode
+    if ($clean -match '^\s*#\s+\S' -or $clean -match $RE_HTML_ANCHOR_LINE) {
+      $stripping = $false
+      $out.Add($clean) | Out-Null
+      $i++
+      continue
+    }
+    $i++
+  }
+  return $out.ToArray()
+}
+
 function Has-AnyHtmlAnchor([string[]]$lines) {
   foreach ($line in $lines) {
     if ($line -match $RE_HTML_ANCHOR_LINE) {
@@ -276,11 +322,20 @@ foreach ($f in $mdFiles) {
     continue
   }
 
-  if (-not (Has-TocSection $content)) {
+  $hasToc = Has-TocSection $content
+  $hasGarbledToc = Has-GarbledTocSection $content
+  $needsUtf8BomNormalize = $Fix -and ($read.Encoding -ne "utf8-bom")
+
+  if (-not $hasToc -or $hasGarbledToc -or $needsUtf8BomNormalize) {
     if ($Fix) {
       $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
       Copy-Item -LiteralPath $f.FullName -Destination ($f.FullName + ".bak." + $stamp) -Force
-      $newContent = Build-TocAndAnchors $content
+      $base = $content
+      if (-not $hasToc -or $hasGarbledToc) {
+        $base = Strip-ExistingTocBlock $content
+        $base = Build-TocAndAnchors $base
+      }
+      $newContent = $base
       Write-TextFileUtf8Bom $f.FullName $newContent
       $fixed++
       continue

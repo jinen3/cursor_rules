@@ -76,14 +76,14 @@
       }
     },
     {
-      "label": "check: cursor_rules sanity",
+      "label": "sync: checklist A spec (mdc -> spec)",
       "type": "shell",
       "command": "powershell",
       "args": [
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}\\\\cursor_rules\\\\scripts\\\\check-cursor-rules-sanity.ps1",
+        "${workspaceFolder}\\\\cursor_rules\\\\scripts\\\\sync-checklist-a-spec.ps1",
         "-RootPath",
         "${workspaceFolder}\\\\cursor_rules"
       ],
@@ -125,25 +125,6 @@
         "-ProjectRoot",
         "${workspaceFolder}",
         "-ManualReviewOk"
-      ],
-      "problemMatcher": [],
-      "group": "test",
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "sync: checklist A spec (mdc -> spec)",
-      "type": "shell",
-      "command": "powershell",
-      "args": [
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\\\cursor_rules\\\\scripts\\\\sync-checklist-a-spec.ps1",
-        "-RootPath",
-        "${workspaceFolder}\\\\cursor_rules"
       ],
       "problemMatcher": [],
       "group": "test",
