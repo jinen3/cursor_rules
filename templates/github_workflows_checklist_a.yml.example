@@ -22,6 +22,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          # Private な cursor_rules を clone するには、親リポジトリの Settings → Secrets and variables
+          # → Actions に SUBMODULES_PAT を登録する（読み取りでよい PAT。親＋サブモジュール両方にアクセス可のもの）。
+          # 未登録のときは github.token にフォールバック（サブが public ならこれで足りることが多い）。
+          token: ${{ secrets.SUBMODULES_PAT || github.token }}
 
       - name: Setup Python (optional)
         uses: actions/setup-python@v5

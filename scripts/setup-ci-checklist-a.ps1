@@ -60,5 +60,6 @@ Write-Host ("Installed workflow: {0}" -f $wfPath) -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps (recommended):" -ForegroundColor Cyan
 Write-Host "- Commit/push the workflow in the parent repo." -ForegroundColor Cyan
+Write-Host "- If cursor_rules is a PRIVATE GitHub repo: add repo secret SUBMODULES_PAT (PAT can read parent + cursor_rules)." -ForegroundColor Cyan
 Write-Host "- In GitHub branch protection, require the 'checklist-a' check before merge." -ForegroundColor Cyan
 
