@@ -36,7 +36,7 @@
 | 毎回 | **A 2** | GitHub更新 | Cursor_GitHub連携（Ctrl+Shift+G） | Ctrl+Shift+G（ソース管理）→ cursor_rules (new commits) が出ていれば ステージ → コミット → 同期/プッシュ<br><br>（定型コミット文言／ルール最新化の共有）`Update cursor_rules submodule pointer to GitHub(ルール最新化をGitHubへ反映)` | **親リポジトリ**に「いまの `cursor_rules` が指すコミット」を記録する変更がステージされ、コミット・プッシュで **GitHub 上の親**にその **ポインタ**が載る（他PC・チームが同じサブモジュール版を取れる）。ファイルの中身は **コミット対象のメタ情報**（サブモジュール参照）が主。 | ソース管理で更新の有無確認 → ステージ → コミット → 同期/プッシュ | 最新サブモジュールをGitHubに反映。 | ※ **A1A2完了⇒開発開始** 行の「手順」を参照 |
 | A1A2完了⇒開発開始 | — | — | — | ◆**A) 毎回（数秒）：開発に入る前の固定ルーティン**<br><br>**A1**：リモート（GitHub）にある `cursor_rules` の最新を、いまのプロジェクトの `cursor_rules` フォルダに取り込み、手元のサブモジュール実体＝ルール一式を最新にする。<br><br>**A2**：その結果、**親リポジトリが指すサブモジュールのコミット（ポインタ）**が変わっているなら、親リポジトリを commit/push して GitHub に載せる（チームや別PCで同じ参照を再現するため）。<br><br>**A のあと**：手元では共通ルールが最新に揃い、必要なら共有用のポインタも GitHub に出た状態なので、その前提で開発に入れる、という意味です。<br><br>**補足**：変更が無いときは A2 でコミットするものが出ません（`cursor_rules (new commits)` が出ない）。その場合は A1 までで「手元は最新」になっていれば、そのまま開発開始で大丈夫です。 | 上の **A1・A2** の説明どおり。単体コマンドの「起きること」は各行参照。**この行自体はコマンド1発ではなく**「毎回のルーティンの意味」のまとめ。 | — | — | ー |
 | 準備 | **B-1** | サブモジュールの作成 | コマンドライン（Ctrl+SHIFT+@） | `git submodule add https://github.com/jinen3/cursor_rules.git cursor_rules`<br>`git add .gitmodules cursor_rules`<br>`git commit -m \"Add cursor_rules submodule\"`<br>`git push` | リポジトリ直下に **`cursor_rules/`** がサブモジュールとして追加され、**`.gitmodules`** に URL とパスが記録される。初回取得後 **`cursor_rules/` 以下**に共通ルール・スクリプトが入る。**`.vscode/` は自動では作られない**（B-2 が別）。 | サブモジュールを追加して push<br>`.gitmodules` に cursor_rules あり（サブモジュール追加済） | プロジェクトに 共通ルールcursor_rules を組み込む。 | ー |
-| 準備 | **B-2** | 最新化用のテンプレ準備 | コマンドライン（Ctrl+SHIFT+@） | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1`<br><br>（コピー更新時／上書きが必要な時）`powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1 -Force`<br><br>（**シンボリックリンク作成が権限で弾かれる場合**）管理者 PowerShell で実行する。<br>**Cursorターミナルから起動（別ウィンドウで昇格）**：`Start-Process powershell -Verb RunAs -ArgumentList '-ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1 -Force'` | **`.vscode` フォルダを消す必要はない**（無ければスクリプトが作成する）。**触るのは基本 `tasks.json` だけ**（`settings.json` 等はそのまま）。<br>**初回／既存なし:** `.vscode/tasks.json` を **`cursor_rules/templates/vscode_tasks.tasks.json.example` へのシンボリックリンク**として作る（成功時）。<br>**`-Force` かつ既存あり:** 既存 `tasks.json` を **`tasks.json.bak.日時`** にバックアップしてから作り直す。<br>**リンク失敗時:** テンプレを **コピー**して `.vscode/tasks.json` にし、**`.vscode/tasks_copy.txt`** に「コピー運用」のマーカーを書く（シンボリックリンクではない旨）。**リンクフォルダ**というより **ファイル1個**（`tasks.json`）がリンクまたは通常ファイルになる。 | `.vscode/tasks.json` を作る（タスク読み込み用の設定ファイル（テンプレ）。共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | （tasks.json がGit管理対象のとき）`chore: update tasks.json for dev-start task`<br>B-1 |
+| 準備 | **B-2** | 最新化用のテンプレ準備 | コマンドライン（Ctrl+SHIFT+@） | `powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1`<br><br>（コピー更新時／上書きが必要な時）`powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-tasks-link.ps1 -Force`<br><br>（**シンボリックリンク作成が権限で弾かれる場合**）管理者 PowerShell で実行する。<br>**Cursorターミナルから起動（別ウィンドウで昇格）**：**下の「B-2 補足」参照**（`Start-Process` だけだと作業フォルダが引き継がれず **何も起きない／一瞬で閉じる**ことがある）。 | **`.vscode` フォルダを消す必要はない**（無ければスクリプトが作成する）。**触るのは基本 `tasks.json` だけ**（`settings.json` 等はそのまま）。<br>**初回／既存なし:** `.vscode/tasks.json` を **`cursor_rules/templates/vscode_tasks.tasks.json.example` へのシンボリックリンク**として作る（成功時）。<br>**`-Force` かつ既存あり:** 既存 `tasks.json` を **`tasks.json.bak.日時`** にバックアップしてから作り直す。<br>**リンク失敗時:** テンプレを **コピー**して `.vscode/tasks.json` にし、**`.vscode/tasks_copy.txt`** に「コピー運用」のマーカーを書く（シンボリックリンクではない旨）。**リンクフォルダ**というより **ファイル1個**（`tasks.json`）がリンクまたは通常ファイルになる。 | `.vscode/tasks.json` を作る（タスク読み込み用の設定ファイル（テンプレ）。共通テンプレへのリンク作成） | dev-start（サブモジュールの中身を取得＋最新化）をclick実行できるようにする | （tasks.json がGit管理対象のとき）`chore: update tasks.json for dev-start task`<br>B-1 |
 | 準備 | **B-3** | ルールの初回登録 | Cursor機能（Rules） | Cursor Settings → Rules → Add Rule<br>プロジェクトフォルダ直下の Cursor ルール（.mdc）を登録<br>`<プロジェクトルート>\\cursor_rules\\.cursor\\rules\\`<br>7 ファイル（`markdown-common.mdc` のみ `globs` + `alwaysApply: false`、それ以外 6 本は `alwaysApply: true`）<br><br>**【重要】RulesのDeleteは .mdc 実ファイル削除になることがある**ため、外したい時は **`Agent decides when to apply`** に切り替える（`git status` が `deleted` なら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules` ／特定ファイルなら `git -C "<プロジェクトルート>\\cursor_rules" restore .cursor/rules/venv-only-common.mdc`） | Cursor が **ルールとして参照するパス**が登録され、チャット時に **7本の `.mdc` が適用**される（設定は Cursor 内部。リポジトリに必ず新ファイルが増えるわけではない）。誤って Delete すると **サブモジュール内の .mdc が削除扱い**になり得る（restore で復旧）。 | 7本の `.mdc` を Rules にパス登録 | .mdc を自動適用して「共通ルール」をブレなく効かせる | ー |
 | **準備（初回／ルール・テンプレ更新後）** | **C. Checklist A 実行の準備**（大項目） | **Checklist A を確実に実行できる状態**にする（落ちない・タスクから叩ける・任意で CI 強制） | **A1・B-2・（任意）CI** の組み合わせ | **1)** **B-1** 相当：`cursor_rules` サブモジュールがあり、`scripts/run-checklist-a.ps1` 等が手元にある。<br>**2)** **A1**：`dev-start` 等で **サブモジュール取得・最新化**（古い `cursor_rules` だと `.mdc`／`spec` 不一致で FAIL）。<br>**3)** **B-2**：`setup-tasks-link.ps1`（必要なら **`-Force`**／シンボリックリンク不可なら **管理者 RunAs**）。**`requiredTaskLabels`**（例：`run: checklist A (all rules)`）が **`.vscode/tasks.json` に存在**すること。<br>**4)** `タスクの実行…` に **Checklist A 系タスク**が並ぶことを確認（一覧を閉じて開き直す／必要なら `Reload Window`）。<br>**5)** （**任意・推奨**）**CI 強制**：`powershell -ExecutionPolicy Bypass -File .\\cursor_rules\\scripts\\setup-ci-checklist-a.ps1` → `.github/workflows/checklist-a.yml` を **commit/push**し、GitHub Branch protection で **check を Required** にする。<br>**6)** プロジェクトに **`.venv` と `tests/`** がある場合、ポリシーにより **pytest** が走り、未整備だと FAIL し得る。 | **サブモジュール＋tasks 配線**が揃うと **`upd.checklist_task_wired` 等での早期 FAIL** を避けやすい。**CI** を入れると **マージ前に同じチェックを必須**にできる（エディタの自動起動の代替にはならないが、**リポジトリ単位の強制**になる）。 | 上記を満たしてから開発／タスク終了時に **「タスクの実行…」→ `run: checklist A (all rules)`** または CI を参照 | **C は A1・B-2・Checklist A 行の要約。** テンプレにラベルが増えたら **B-2 を再実行** | `Checklist_A.md`・§「CI で強制」 |
 | いつでも | （ルール）共通不具合の直し方 | 迷わないための方針 | 共通不具合は共通側を直す | **共通側（d:\\pyscript\\cursor_rules）で修正→commit/push** → 各プロジェクトは **dev-start** で取り込む | 共通リポジトリ側の修正が **GitHub に乗り**、各プロジェクトで **A1（dev-start）** すると手元の **`cursor_rules/`** の中身が更新される。**親の `tasks.json` は自動では変わらない**（テンプレ更新を取り込みたいなら B-2 の `-Force` 等）。 | **警告：目的を見失わない。** GitHub操作やルール整備に悩んで時間を溶かしがち。まず「何をやりたいか？」（=開発で結果を出す）に立ち返る。 | B-2（共通不具合のとき） |
@@ -130,6 +130,32 @@ powershell -ExecutionPolicy Bypass -File .\cursor_rules\scripts\setup-tasks-link
 
 - これで既存 `tasks.json` を **バックアップして作り直します**
 - 権限不足なら **コピーで代替しつつ、内容は最新になります**
+
+#### B-2 補足（管理者 `RunAs` で UAC のあと「何も起きない」とき）
+
+**原因（多い）：** `Start-Process powershell -Verb RunAs ...` で開いた **管理者 PowerShell のカレントディレクトリ**は、いまの Cursor のフォルダとは限らず（例：`C:\Windows\System32`）。そのため **相対パス `.\cursor_rules\...` が解決できず**、スクリプトが即終了し、**ウィンドウが一瞬で消える**ように見える。
+
+**対策：** **プロジェクトルートのフルパス**を渡す（推奨は次のどちらか）。
+
+**方法1（推奨）：`-WorkingDirectory` を付ける**
+
+プロジェクトルートで実行：
+
+```powershell
+$root = (Get-Location).Path
+Start-Process powershell -Verb RunAs -WorkingDirectory $root -ArgumentList '-NoExit','-ExecutionPolicy','Bypass','-File',"$root\cursor_rules\scripts\setup-tasks-link.ps1",'-Force'
+```
+
+- **`-NoExit`**：エラー時もウィンドウが開いたままになり、メッセージを読める（成功確認後は外してよい）。
+
+**方法2：`-ProjectRoot` にフルパスを渡す**（`setup-tasks-link.ps1` がサポート）
+
+```powershell
+$p = (Get-Location).Path
+Start-Process powershell -Verb RunAs -ArgumentList "-ExecutionPolicy Bypass -File `"$p\cursor_rules\scripts\setup-tasks-link.ps1`" -Force -ProjectRoot `"$p`""
+```
+
+**確認：** 成功時は **`Symlink created:`** または **`Copied:`** が表示される。あわせて `Get-Item .\.vscode\tasks.json | Format-List LinkType, Target` でシンボリックリンクか確認できる。
 
 **（ルール）全プロジェクト共通の不具合は「共通側」で直す**
 
