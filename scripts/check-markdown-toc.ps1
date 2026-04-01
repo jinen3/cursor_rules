@@ -151,9 +151,23 @@ function Build-TocAndAnchors([string[]]$lines) {
   for ($j = 0; $j -lt $lines.Length; $j++) {
     $line = $lines[$j]
     $clean = $line -replace [char]0xFEFF, ''
+    if ($clean -match $RE_HTML_ANCHOR_LINE) {
+      # Preserve existing anchors (we may reuse them for the next heading).
+      $injected.Add($clean) | Out-Null
+      continue
+    }
+
     if ($clean -match '^\s{0,3}#{1,6}\s+\S') {
       $sec++
       $anchor = "sec" + $sec
+      # If an anchor line already exists immediately before this heading, reuse it.
+      if ($injected.Count -ge 1) {
+        $prev = $injected[$injected.Count - 1]
+        $mPrev = [Regex]::Match($prev, $RE_HTML_ANCHOR_LINE)
+        if ($mPrev.Success) {
+          $anchor = $mPrev.Groups[1].Value
+        }
+      }
       $level = ([Regex]::Match($clean, '^\s{0,3}(#{1,6})').Groups[1].Value).Length
       $indent = ""
       if ($level -gt 2) {
@@ -162,7 +176,10 @@ function Build-TocAndAnchors([string[]]$lines) {
       }
       $title = ($clean -replace '^\s{0,3}#{1,6}\s+', '').Trim()
       $tocLinks.Add($indent + "- [$title](#$anchor)") | Out-Null
-      $injected.Add("<a id=""$anchor""></a>") | Out-Null
+      # Inject anchor only when missing.
+      if (-not ($injected.Count -ge 1 -and [Regex]::Match($injected[$injected.Count - 1], $RE_HTML_ANCHOR_LINE).Success)) {
+        $injected.Add("<a id=""$anchor""></a>") | Out-Null
+      }
       $injected.Add($clean) | Out-Null
     } else {
       $injected.Add($clean) | Out-Null
@@ -260,7 +277,7 @@ foreach ($f in $mdFiles) {
   }
 
   if (-not (Has-TocSection $content)) {
-    if ($Fix -and -not (Has-AnyHtmlAnchor $content)) {
+    if ($Fix) {
       $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
       Copy-Item -LiteralPath $f.FullName -Destination ($f.FullName + ".bak." + $stamp) -Force
       $newContent = Build-TocAndAnchors $content
