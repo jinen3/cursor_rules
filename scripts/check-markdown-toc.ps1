@@ -293,12 +293,39 @@ $problems = New-Object System.Collections.Generic.List[string]
 $fixed = 0
 
 foreach ($f in $mdFiles) {
+  $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
   $read = Read-TextFileLines $f.FullName
   $content = $read.Lines
 
+  # Force-repair mojibake TOC: if CP932-decoded text contains the garbled "目次" header,
+  # rebuild TOC and normalize to UTF-8 BOM. This avoids environment-dependent decoding differences.
+  if ($Fix) {
+    $cp932 = [System.Text.Encoding]::GetEncoding(932)
+    $cp932Text = $cp932.GetString($bytes)
+    if ($cp932Text -match '(?m)^\s*##\s*逶ｮ谺｡\s*$') {
+      $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
+      Copy-Item -LiteralPath $f.FullName -Destination ($f.FullName + ".bak." + $stamp) -Force
+
+      $baseLines = $content
+      try {
+        $utf8Strict = New-Object System.Text.UTF8Encoding($false, $true)
+        $utf8Text = $utf8Strict.GetString($bytes)
+        if ($utf8Text -notmatch [char]0xFFFD) {
+          $baseLines = $utf8Text -split "\r\n|\n|\r"
+        }
+      } catch {
+      }
+
+      $baseLines = Strip-ExistingTocBlock $baseLines
+      $newContent = Build-TocAndAnchors $baseLines
+      Write-TextFileUtf8Bom $f.FullName $newContent
+      $fixed++
+      continue
+    }
+  }
+
   # If TOC looks missing, try the other common encoding once (UTF-8 <-> CP932).
   if (-not (Has-TocSection $content)) {
-    $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
     if ($read.Encoding -eq "cp932") {
       try {
         $utf8Strict = New-Object System.Text.UTF8Encoding($false, $true)
