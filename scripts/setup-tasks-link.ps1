@@ -54,9 +54,25 @@ if (Test-Path -LiteralPath $linkPath) {
         exit 0
     }
     $backup = ("{0}.bak.{1}" -f $linkPath, (Get-Date -Format "yyyyMMdd_HHmmss"))
-    Copy-Item -LiteralPath $linkPath -Destination $backup -Force
-    Remove-Item -LiteralPath $linkPath -Force
-    Write-Host ("Backed up existing file: {0}" -f $backup) -ForegroundColor DarkGray
+    $item = Get-Item -LiteralPath $linkPath -Force -ErrorAction SilentlyContinue
+    $isLink = $false
+    if ($null -ne $item) {
+        try { $isLink = [bool]$item.LinkType } catch { $isLink = $false }
+    }
+
+    if ($isLink) {
+        # Copy-Item may fail by dereferencing a broken/unresolvable symlink (e.g. in CI checkout).
+        Write-Host ("Existing tasks.json is a symlink; skipping backup: {0}" -f $linkPath) -ForegroundColor DarkGray
+    } else {
+        try {
+            Copy-Item -LiteralPath $linkPath -Destination $backup -Force
+            Write-Host ("Backed up existing file: {0}" -f $backup) -ForegroundColor DarkGray
+        } catch {
+            Write-Host ("Backup failed (will overwrite anyway): {0}" -f $_.Exception.Message) -ForegroundColor DarkGray
+        }
+    }
+
+    Remove-Item -LiteralPath $linkPath -Force -ErrorAction SilentlyContinue
 }
 
 try {
