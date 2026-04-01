@@ -8,6 +8,7 @@ param(
   [Parameter(Mandatory = $false)]
   [string[]]$ExcludeDirNames = @(
     ".git",
+    "cursor_rules",
     ".venv",
     "node_modules",
     "dist",
