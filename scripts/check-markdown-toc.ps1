@@ -400,7 +400,9 @@ foreach ($f in $mdFiles) {
     } catch { $utf8TextForScan = "" }
 
     $firstLine = Get-FirstNonEmptyLine $content
-    if ($firstLine -match $RE_TOC_HEADER -or $firstLine -match '^\s*##\s*逶ｮ谺｡\s*$') { $needsForceRebuild = $true }
+    # Do NOT force rebuild just because a healthy file starts with the proper TOC header.
+    # Only force rebuild for garbled headers, duplicated TOC blocks, or other corruption signals.
+    if ($firstLine -match '^\s*##\s*逶ｮ谺｡\s*$') { $needsForceRebuild = $true }
 
     # If the file starts with a level-2 heading that is NOT the proper TOC header,
     # and it immediately looks like our auto-generated TOC, force a rebuild.
