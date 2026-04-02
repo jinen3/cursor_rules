@@ -350,7 +350,17 @@ foreach ($f in $mdFiles) {
   if ($Fix) {
     $cp932 = [System.Text.Encoding]::GetEncoding(932)
     $cp932Text = $cp932.GetString($bytes)
-    if ($cp932Text -match '(?m)^\s*##\s*逶ｮ谺｡\s*$') {
+    $utf8TextForScan = ""
+    try {
+      $utf8StrictForScan = New-Object System.Text.UTF8Encoding($false, $true)
+      $utf8TextForScan = $utf8StrictForScan.GetString($bytes)
+    } catch {
+      $utf8TextForScan = ""
+    }
+
+    # Mixed-encoding markdown is common: parts saved as CP932 and later edited as UTF-8.
+    # Scan BOTH decodings; if either view contains a mojibake TOC header, force rebuild.
+    if ($cp932Text -match '(?m)^\s*##\s*逶ｮ谺｡\s*$' -or $utf8TextForScan -match '(?m)^\s*##\s*逶ｮ谺｡\s*$') {
       $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
       Copy-Item -LiteralPath $f.FullName -Destination ($f.FullName + ".bak." + $stamp) -Force
 
