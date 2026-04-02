@@ -133,6 +133,21 @@ function Has-GarbledTocSection([string[]]$lines) {
   return $false
 }
 
+function Get-FirstNonEmptyLine([string[]]$lines) {
+  foreach ($line in $lines) {
+    $clean = ($line -replace [char]0xFEFF, '').TrimEnd()
+    if ($clean.Trim() -ne "") { return $clean }
+  }
+  return ""
+}
+
+function Count-TocHeaders([string]$text) {
+  if ([string]::IsNullOrEmpty($text)) { return 0 }
+  $m1 = [Regex]::Matches($text, '(?m)^\s*##\s*目次\s*$').Count
+  $m2 = [Regex]::Matches($text, '(?m)^\s*##\s*逶ｮ谺｡\s*$').Count
+  return ($m1 + $m2)
+}
+
 function Strip-ExistingTocBlock([string[]]$lines) {
   # Remove an existing TOC block (including garbled headers) to allow rebuilding.
   # We stop stripping when we reach the first real content marker (title heading or first <a id=...>).
@@ -345,6 +360,31 @@ foreach ($f in $mdFiles) {
   $read = Read-TextFileLines $f.FullName
   $content = $read.Lines
 
+  # In -Fix mode, prefer a simple approach:
+  # if the file starts with a TOC heading (even garbled), or TOC appears multiple times,
+  # delete the leading TOC blocks and rebuild a single clean TOC.
+  # This avoids "TOC appended without removing the old one".
+  $needsForceRebuild = $false
+  $cp932ForScan = $null
+  $cp932TextForScan = ""
+  $utf8TextForScan = ""
+  if ($Fix) {
+    try {
+      $cp932ForScan = [System.Text.Encoding]::GetEncoding(932)
+      $cp932TextForScan = $cp932ForScan.GetString($bytes)
+    } catch { $cp932TextForScan = "" }
+    try {
+      $utf8StrictForScan = New-Object System.Text.UTF8Encoding($false, $true)
+      $utf8TextForScan = $utf8StrictForScan.GetString($bytes)
+    } catch { $utf8TextForScan = "" }
+
+    $firstLine = Get-FirstNonEmptyLine $content
+    if ($firstLine -match '^\s*##\s*(目次|逶ｮ谺｡)\s*$') { $needsForceRebuild = $true }
+
+    $tocCount = [Math]::Max((Count-TocHeaders $cp932TextForScan), (Count-TocHeaders $utf8TextForScan))
+    if ($tocCount -ge 2) { $needsForceRebuild = $true }
+  }
+
   # Force-repair mojibake TOC: if CP932-decoded text contains the garbled "目次" header,
   # rebuild TOC and normalize to UTF-8 BOM. This avoids environment-dependent decoding differences.
   if ($Fix) {
@@ -360,7 +400,7 @@ foreach ($f in $mdFiles) {
 
     # Mixed-encoding markdown is common: parts saved as CP932 and later edited as UTF-8.
     # Scan BOTH decodings; if either view contains a mojibake TOC header, force rebuild.
-    if ($cp932Text -match '(?m)^\s*##\s*逶ｮ谺｡\s*$' -or $utf8TextForScan -match '(?m)^\s*##\s*逶ｮ谺｡\s*$') {
+    if ($needsForceRebuild -or $cp932Text -match '(?m)^\s*##\s*逶ｮ谺｡\s*$' -or $utf8TextForScan -match '(?m)^\s*##\s*逶ｮ谺｡\s*$') {
       $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
       Copy-Item -LiteralPath $f.FullName -Destination ($f.FullName + ".bak." + $stamp) -Force
 
