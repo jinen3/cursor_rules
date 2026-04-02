@@ -11,7 +11,6 @@ param(
     "cursor_rules",
     ".venv",
     "node_modules",
-    "dist",
     "build",
     "__pycache__"
   )
