@@ -402,9 +402,10 @@ foreach ($f in $mdFiles) {
     $firstLine = Get-FirstNonEmptyLine $content
     if ($firstLine -match $RE_TOC_HEADER -or $firstLine -match '^\s*##\s*逶ｮ谺｡\s*$') { $needsForceRebuild = $true }
 
-    # If the file starts with any level-2 heading and immediately looks like our auto-generated TOC,
-    # force a rebuild (this also normalizes encoding to UTF-8 BOM).
-    if (-not $needsForceRebuild -and $firstLine -match '^\s*##\s+\S') {
+    # If the file starts with a level-2 heading that is NOT the proper TOC header,
+    # and it immediately looks like our auto-generated TOC, force a rebuild.
+    # (Do not trigger on a healthy file that already starts with "## 目次".)
+    if (-not $needsForceRebuild -and $firstLine -match '^\s*##\s+\S' -and -not ($firstLine -match $RE_TOC_HEADER)) {
       $hasListLink = $false
       $hasJumpHint = $false
       $limit = [Math]::Min(60, $content.Length)
