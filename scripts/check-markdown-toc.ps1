@@ -403,6 +403,20 @@ foreach ($f in $mdFiles) {
     $firstLine = Get-FirstNonEmptyLine $content
     if ($firstLine -match $RE_TOC_HEADER -or $firstLine -match '^\s*##\s*逶ｮ谺｡\s*$') { $needsForceRebuild = $true }
 
+    # If the file starts with any level-2 heading and immediately looks like our auto-generated TOC,
+    # force a rebuild (this also normalizes encoding to UTF-8 BOM).
+    if (-not $needsForceRebuild -and $firstLine -match '^\s*##\s+\S') {
+      $hasListLink = $false
+      $hasJumpHint = $false
+      $limit = [Math]::Min(60, $content.Length)
+      for ($k = 0; $k -lt $limit; $k++) {
+        $l = (($content[$k] -replace [char]0xFEFF, '') )
+        if ($l -match '^\s*-\s+\[[^\]]+\]\(#sec\d+\)') { $hasListLink = $true }
+        if ($l -match 'To jump TOC links') { $hasJumpHint = $true }
+      }
+      if ($hasListLink -and $hasJumpHint) { $needsForceRebuild = $true }
+    }
+
     $tocCount = [Math]::Max((Count-TocHeaders $cp932TextForScan), (Count-TocHeaders $utf8TextForScan))
     if ($tocCount -ge 2) { $needsForceRebuild = $true }
   }
