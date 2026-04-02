@@ -227,6 +227,23 @@ function Strip-LeadingAutoTocBlocks([string[]]$lines) {
   return $cleaned
 }
 
+function Strip-LeadingContentBeforeFirstTitle([string[]]$lines) {
+  # If a file begins with an auto TOC (or any garbage) before the first H1 title,
+  # drop everything up to the first "# Title" line (keeping a preceding <a id=...> when present).
+  $titleIdx = -1
+  for ($i = 0; $i -lt $lines.Length; $i++) {
+    $c = ($lines[$i] -replace [char]0xFEFF, '')
+    if ($c -match '^\s*#\s+\S') { $titleIdx = $i; break }
+  }
+  if ($titleIdx -lt 0) { return $lines }
+  $start = $titleIdx
+  if ($titleIdx -ge 1) {
+    $prev = ($lines[$titleIdx - 1] -replace [char]0xFEFF, '')
+    if ($prev -match $RE_HTML_ANCHOR_LINE) { $start = $titleIdx - 1 }
+  }
+  return $lines[$start..($lines.Length - 1)]
+}
+
 function Has-AnyHtmlAnchor([string[]]$lines) {
   foreach ($line in $lines) {
     if ($line -match $RE_HTML_ANCHOR_LINE) {
@@ -416,6 +433,7 @@ foreach ($f in $mdFiles) {
 
       $baseLines = Strip-ExistingTocBlock $baseLines
       $baseLines = Strip-LeadingAutoTocBlocks $baseLines
+      $baseLines = Strip-LeadingContentBeforeFirstTitle $baseLines
       $newContent = Build-TocAndAnchors $baseLines
       Write-TextFileUtf8Bom $f.FullName $newContent
       $fixed++
