@@ -27,6 +27,11 @@ try {
 $RE_TOC_LINK = '\[[^\]]+\]\(#([A-Za-z0-9-]+)\)'
 $RE_HTML_ANCHOR_LINE = '^\s*<a\s+id="([A-Za-z0-9-]+)"></a>\s*$'
 
+# Avoid encoding-dependent Japanese string literals in PowerShell scripts.
+# Construct "目次" via Unicode code points so it is stable even if the script file is read as CP932.
+$TOC_TITLE = ([string][char]0x76EE) + ([string][char]0x6B21) # 目次
+$RE_TOC_HEADER = '^\s*##\s*' + [Regex]::Escape($TOC_TITLE) + '\s*$'
+
 function Resolve-AbsPath([string]$path) {
   return (Resolve-Path -LiteralPath $path).Path
 }
@@ -111,7 +116,7 @@ function Get-HeadingLines([string[]]$lines) {
 function Has-TocSection([string[]]$lines) {
   foreach ($line in $lines) {
     $clean = $line -replace [char]0xFEFF, ''
-    if ($clean -match '^\s*##\s*目次\s*$') {
+    if ($clean -match $RE_TOC_HEADER) {
       return $true
     }
   }
@@ -143,7 +148,7 @@ function Get-FirstNonEmptyLine([string[]]$lines) {
 
 function Count-TocHeaders([string]$text) {
   if ([string]::IsNullOrEmpty($text)) { return 0 }
-  $m1 = [Regex]::Matches($text, '(?m)^\s*##\s*目次\s*$').Count
+  $m1 = [Regex]::Matches($text, '(?m)' + $RE_TOC_HEADER).Count
   $m2 = [Regex]::Matches($text, '(?m)^\s*##\s*逶ｮ谺｡\s*$').Count
   return ($m1 + $m2)
 }
@@ -157,7 +162,7 @@ function Strip-ExistingTocBlock([string[]]$lines) {
   while ($i -lt $lines.Length) {
     $clean = ($lines[$i] -replace [char]0xFEFF, '')
     if (-not $stripping) {
-      if ($clean -match '^\s*##\s*目次\s*$' -or $clean -match '^\s*##\s*逶ｮ谺｡\s*$') {
+      if ($clean -match $RE_TOC_HEADER -or $clean -match '^\s*##\s*逶ｮ谺｡\s*$') {
         $stripping = $true
         $i++
         continue
@@ -313,7 +318,7 @@ function Build-TocAndAnchors([string[]]$lines) {
   }
 
   $header = New-Object System.Collections.Generic.List[string]
-  $header.Add("## 目次") | Out-Null
+  $header.Add("## " + $TOC_TITLE) | Out-Null
   $header.Add("") | Out-Null
   foreach ($t in $tocLinks) { $header.Add($t) | Out-Null }
   $header.Add("") | Out-Null
@@ -396,7 +401,7 @@ foreach ($f in $mdFiles) {
     } catch { $utf8TextForScan = "" }
 
     $firstLine = Get-FirstNonEmptyLine $content
-    if ($firstLine -match '^\s*##\s*(目次|逶ｮ谺｡)\s*$') { $needsForceRebuild = $true }
+    if ($firstLine -match $RE_TOC_HEADER -or $firstLine -match '^\s*##\s*逶ｮ谺｡\s*$') { $needsForceRebuild = $true }
 
     $tocCount = [Math]::Max((Count-TocHeaders $cp932TextForScan), (Count-TocHeaders $utf8TextForScan))
     if ($tocCount -ge 2) { $needsForceRebuild = $true }
@@ -510,7 +515,7 @@ if ($problems.Count -gt 0) {
     Write-Host $p
   }
   Write-Host ""
-  Write-Host "FAIL: Add '## 目次' and <a id=\"...\"> anchors."
+  Write-Host ("FAIL: Add '## " + $TOC_TITLE + "' and <a id=""...""> anchors.")
   exit 1
 }
 
