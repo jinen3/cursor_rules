@@ -164,6 +164,54 @@ function Strip-ExistingTocBlock([string[]]$lines) {
   return $out.ToArray()
 }
 
+function Strip-LeadingAutoTocBlocks([string[]]$lines) {
+  # Remove one or more auto-generated TOC blocks at the top of the file.
+  # This fixes cases where a garbled TOC remains and a second TOC gets appended.
+  #
+  # We treat a block as "auto TOC" when:
+  # - it starts with a level-2 heading (## ...)
+  # - within the next ~40 lines we see list links to #secN and the jump hint
+  # We stop stripping when we reach the first real content marker (# title or first <a id=...>).
+  $i = 0
+  $cleaned = $lines
+
+  while ($true) {
+    if ($cleaned.Length -lt 5) { break }
+    $first = ($cleaned[0] -replace [char]0xFEFF, '')
+    if (-not ($first -match '^\s*##\s+\S')) { break }
+
+    $hasListLink = $false
+    $hasJumpHint = $false
+    $limit = [Math]::Min(40, $cleaned.Length)
+    for ($k = 0; $k -lt $limit; $k++) {
+      $l = ($cleaned[$k] -replace [char]0xFEFF, '')
+      if ($l -match '^\s*-\s+\[[^\]]+\]\(#sec\d+\)') { $hasListLink = $true }
+      if ($l -match 'To jump TOC links') { $hasJumpHint = $true }
+    }
+    if (-not ($hasListLink -and $hasJumpHint)) { break }
+
+    # Strip until real content marker.
+    $out = New-Object System.Collections.Generic.List[string]
+    $stripping = $true
+    for ($j = 0; $j -lt $cleaned.Length; $j++) {
+      $c = ($cleaned[$j] -replace [char]0xFEFF, '')
+      if ($stripping) {
+        if ($c -match '^\s*#\s+\S' -or $c -match $RE_HTML_ANCHOR_LINE) {
+          $stripping = $false
+          $out.Add($c) | Out-Null
+        }
+        continue
+      }
+      $out.Add($c) | Out-Null
+    }
+    $next = $out.ToArray()
+    if ($next.Length -eq $cleaned.Length) { break }
+    $cleaned = $next
+  }
+
+  return $cleaned
+}
+
 function Has-AnyHtmlAnchor([string[]]$lines) {
   foreach ($line in $lines) {
     if ($line -match $RE_HTML_ANCHOR_LINE) {
@@ -317,6 +365,7 @@ foreach ($f in $mdFiles) {
       }
 
       $baseLines = Strip-ExistingTocBlock $baseLines
+      $baseLines = Strip-LeadingAutoTocBlocks $baseLines
       $newContent = Build-TocAndAnchors $baseLines
       Write-TextFileUtf8Bom $f.FullName $newContent
       $fixed++
@@ -360,6 +409,7 @@ foreach ($f in $mdFiles) {
       $base = $content
       if (-not $hasToc -or $hasGarbledToc) {
         $base = Strip-ExistingTocBlock $content
+        $base = Strip-LeadingAutoTocBlocks $base
         $base = Build-TocAndAnchors $base
       }
       $newContent = $base
